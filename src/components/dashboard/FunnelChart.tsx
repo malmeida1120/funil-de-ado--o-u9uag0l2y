@@ -1,33 +1,42 @@
 import { STAGE_ORDER, STAGES } from '@/lib/constants'
-import { useMainStore } from '@/stores/main'
+import { Opportunity } from '@/types'
 
-export default function FunnelChart() {
-  const { opportunities } = useMainStore()
+interface FunnelChartProps {
+  opportunities: Opportunity[]
+}
 
-  const stageCounts = STAGE_ORDER.reduce(
+export default function FunnelChart({ opportunities }: FunnelChartProps) {
+  const stageData = STAGE_ORDER.reduce(
     (acc, stageId) => {
-      acc[stageId] = opportunities.filter((o) => o.stageId === stageId).length
+      const opps = opportunities.filter((o) => o.stageId === stageId)
+      acc[stageId] = {
+        count: opps.length,
+        totalValue: opps.reduce((sum, o) => sum + o.potentialValue, 0),
+      }
       return acc
     },
-    {} as Record<string, number>,
+    {} as Record<string, { count: number; totalValue: number }>,
   )
 
-  const maxCount = Math.max(...Object.values(stageCounts), 1)
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      maximumFractionDigits: 0,
+    }).format(val)
 
   return (
     <div className="flex flex-col gap-2 w-full max-w-2xl mx-auto py-8">
       {STAGE_ORDER.map((stageId, index) => {
-        const count = stageCounts[stageId]
+        const data = stageData[stageId]
         const stage = STAGES[stageId]
-        // Create a trapezoid-like effect by reducing the width based on stage order,
-        // but keeping it proportional to count for visual data representation if we wanted.
-        // For a true funnel, width usually decreases steadily. Let's do steady decrease.
+        // Create a trapezoid-like effect by reducing the width based on stage order
         const widthPercent = 100 - index * 15
 
         return (
           <div key={stageId} className="flex flex-col items-center group relative">
             <div
-              className={`h-16 flex items-center justify-between px-6 transition-all duration-300 hover:opacity-90 shadow-sm`}
+              className={`h-20 flex items-center justify-between px-6 transition-all duration-300 hover:opacity-90 shadow-sm`}
               style={{
                 width: `${widthPercent}%`,
                 backgroundColor: stage.hexColor,
@@ -38,9 +47,14 @@ export default function FunnelChart() {
                 borderRadius: index === STAGE_ORDER.length - 1 ? '0 0 8px 8px' : '0',
               }}
             >
-              <span className="text-white font-semibold">{stage.label}</span>
+              <div className="flex flex-col">
+                <span className="text-white font-semibold">{stage.label}</span>
+                <span className="text-white/80 text-xs font-medium">
+                  {formatCurrency(data.totalValue)}
+                </span>
+              </div>
               <span className="text-white/90 font-bold bg-black/20 px-3 py-1 rounded-full text-sm">
-                {count}
+                {data.count}
               </span>
             </div>
           </div>

@@ -1,37 +1,51 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useMainStore } from '@/stores/main'
 import FunnelChart from '@/components/dashboard/FunnelChart'
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import { STAGES } from '@/lib/constants'
 
 export default function Index() {
-  const { opportunities } = useMainStore()
+  const { opportunities, products } = useMainStore()
+  const [selectedProductId, setSelectedProductId] = useState<string>('ALL')
+
+  const filteredOpportunities = useMemo(() => {
+    if (selectedProductId === 'ALL') return opportunities
+    return opportunities.filter((opp) => opp.productId === selectedProductId)
+  }, [opportunities, selectedProductId])
 
   const metrics = useMemo(() => {
     let totalValue = 0
     let weightedRev = 0
 
-    opportunities.forEach((opp) => {
+    filteredOpportunities.forEach((opp) => {
       totalValue += opp.potentialValue
       const stageWin = STAGES[opp.stageId].winPercentage
       const finalWin = (opp.qualitativeWin + stageWin) / 2
       weightedRev += opp.potentialValue * (finalWin / 100)
     })
 
-    const implemented = opportunities.filter((o) => o.stageId === 'IMPLEMENTAR').length
-    const conversionRate = opportunities.length > 0 ? (implemented / opportunities.length) * 100 : 0
+    const implemented = filteredOpportunities.filter((o) => o.stageId === 'IMPLEMENTAR').length
+    const conversionRate =
+      filteredOpportunities.length > 0 ? (implemented / filteredOpportunities.length) * 100 : 0
 
     return {
       totalValue,
       weightedRev,
       conversionRate,
     }
-  }, [opportunities])
+  }, [filteredOpportunities])
 
   const chartData = useMemo(() => {
     // Group weighted revenue by estimated Date
-    const grouped = opportunities.reduce(
+    const grouped = filteredOpportunities.reduce(
       (acc, opp) => {
         const date = opp.estimatedDate || 'S/D'
         if (!acc[date]) acc[date] = 0
@@ -47,7 +61,7 @@ export default function Index() {
       .map(([date, value]) => ({ date, value }))
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, 12) // Show max 12 periods
-  }, [opportunities])
+  }, [filteredOpportunities])
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', {
@@ -58,6 +72,27 @@ export default function Index() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Dashboard Executivo</h2>
+        </div>
+        <div className="w-full sm:w-64">
+          <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filtrar por Produto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos os Produtos</SelectItem>
+              {products.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -79,7 +114,7 @@ export default function Index() {
               {formatCurrency(metrics.weightedRev)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Baseado na propabilidade Média (Quali + Sistêmica)
+              Baseado na probabilidade Média (Quali + Sistêmica)
             </p>
           </CardContent>
         </Card>
@@ -98,10 +133,10 @@ export default function Index() {
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Funil de Adoção Institucional</CardTitle>
-            <CardDescription>Volume de oportunidades por etapa</CardDescription>
+            <CardDescription>Volume e valor das oportunidades por etapa</CardDescription>
           </CardHeader>
           <CardContent className="h-[350px] flex items-center justify-center">
-            <FunnelChart />
+            <FunnelChart opportunities={filteredOpportunities} />
           </CardContent>
         </Card>
         <Card className="col-span-1">
