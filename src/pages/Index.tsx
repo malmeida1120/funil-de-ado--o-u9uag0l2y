@@ -15,18 +15,31 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-react'
 import { useMainStore } from '@/stores/main'
 import FunnelChart from '@/components/dashboard/FunnelChart'
 import { STAGES, STAGE_ORDER } from '@/lib/constants'
+import { ClientFilter } from '@/components/shared/ClientFilter'
+import { exportForecastMatrix } from '@/lib/export'
 
 export default function Index() {
   const { opportunities, products } = useMainStore()
   const [selectedProductId, setSelectedProductId] = useState<string>('ALL')
+  const [selectedClients, setSelectedClients] = useState<string[]>([])
+
+  const uniqueClients = useMemo(() => {
+    const clients = new Set(opportunities.map((o) => o.clientName))
+    return Array.from(clients).sort()
+  }, [opportunities])
 
   const filteredOpportunities = useMemo(() => {
-    if (selectedProductId === 'ALL') return opportunities
-    return opportunities.filter((opp) => opp.productId === selectedProductId)
-  }, [opportunities, selectedProductId])
+    return opportunities.filter((opp) => {
+      const matchProduct = selectedProductId === 'ALL' || opp.productId === selectedProductId
+      const matchClient = selectedClients.length === 0 || selectedClients.includes(opp.clientName)
+      return matchProduct && matchClient
+    })
+  }, [opportunities, selectedProductId, selectedClients])
 
   const metrics = useMemo(() => {
     let totalValue = 0
@@ -102,24 +115,41 @@ export default function Index() {
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Dashboard Executivo</h2>
         </div>
-        <div className="w-full sm:w-64">
-          <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrar por Produto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Todos os Produtos</SelectItem>
-              {products.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
+          <div className="w-full sm:w-auto">
+            <ClientFilter
+              options={uniqueClients}
+              selected={selectedClients}
+              onChange={setSelectedClients}
+            />
+          </div>
+          <div className="w-full sm:w-64">
+            <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Filtrar por Produto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Todos os Produtos</SelectItem>
+                {products.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto bg-white"
+            onClick={() => exportForecastMatrix(forecastMatrix, uniqueMonths, formatMonth)}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Excel
+          </Button>
         </div>
       </div>
 

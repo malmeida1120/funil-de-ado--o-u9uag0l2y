@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react'
 import { useMainStore } from '@/stores/main'
 import { STAGE_ORDER, STAGES, STAGE_CHECKLISTS } from '@/lib/constants'
-import { StageId, Opportunity } from '@/types'
+import { StageId } from '@/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { OpportunityModal } from '@/components/kanban/OpportunityModal'
 import { useSearchParams } from 'react-router-dom'
@@ -15,20 +17,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ClientFilter } from '@/components/shared/ClientFilter'
+import { exportOpportunities } from '@/lib/export'
 
 export default function Opportunities() {
   const { opportunities, moveOpportunity, products } = useMainStore()
   const { toast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedOppId, setSelectedOppId] = useState<string | null>(null)
+
   const [selectedProductId, setSelectedProductId] = useState<string>('ALL')
+  const [selectedClients, setSelectedClients] = useState<string[]>([])
 
   const isNewOpen = searchParams.get('new') === 'true'
 
+  const uniqueClients = useMemo(() => {
+    const clients = new Set(opportunities.map((o) => o.clientName))
+    return Array.from(clients).sort()
+  }, [opportunities])
+
   const filteredOpportunities = useMemo(() => {
-    if (selectedProductId === 'ALL') return opportunities
-    return opportunities.filter((opp) => opp.productId === selectedProductId)
-  }, [opportunities, selectedProductId])
+    return opportunities.filter((opp) => {
+      const matchProduct = selectedProductId === 'ALL' || opp.productId === selectedProductId
+      const matchClient = selectedClients.length === 0 || selectedClients.includes(opp.clientName)
+      return matchProduct && matchClient
+    })
+  }, [opportunities, selectedProductId, selectedClients])
 
   const closeModals = () => {
     setSelectedOppId(null)
@@ -45,7 +59,6 @@ export default function Opportunities() {
     const opp = opportunities.find((o) => o.id === oppId)
     if (!opp) return
 
-    // Validation: Only allow moving forward if current stage activities are done
     const currentStageIdx = STAGE_ORDER.indexOf(opp.stageId)
     const targetStageIdx = STAGE_ORDER.indexOf(targetStage)
 
@@ -80,22 +93,39 @@ export default function Opportunities() {
 
   return (
     <div className="h-full flex flex-col animate-fade-in space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0">
         <h2 className="text-2xl font-bold tracking-tight">Pipeline de Oportunidades</h2>
-        <div className="w-full sm:w-64">
-          <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrar por Produto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Todos os Produtos</SelectItem>
-              {products.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
+          <div className="w-full sm:w-auto">
+            <ClientFilter
+              options={uniqueClients}
+              selected={selectedClients}
+              onChange={setSelectedClients}
+            />
+          </div>
+          <div className="w-full sm:w-64">
+            <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Filtrar por Produto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Todos os Produtos</SelectItem>
+                {products.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto bg-white"
+            onClick={() => exportOpportunities(filteredOpportunities, products)}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Excel
+          </Button>
         </div>
       </div>
 
