@@ -23,6 +23,7 @@ export interface Opportunity {
   estimatedDate: string // YYYY-MM
   qualitativeWin: number // 0-100
   completedActivities: string[] // Array of activity IDs/strings
+  status?: 'ACTIVE' | 'WON' | 'LOST'
   createdAt: string
   updatedAt: string
 }

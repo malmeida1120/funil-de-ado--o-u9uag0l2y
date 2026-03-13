@@ -20,7 +20,7 @@ import { Slider } from '@/components/ui/slider'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useMainStore } from '@/stores/main'
 import { Opportunity, StageId } from '@/types'
-import { STAGE_CHECKLISTS, STAGES, STAGE_ORDER } from '@/lib/constants'
+import { STAGE_CHECKLISTS, STAGES } from '@/lib/constants'
 import { Badge } from '@/components/ui/badge'
 
 interface OpportunityModalProps {
@@ -40,6 +40,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
     estimatedDate: '',
     qualitativeWin: 50,
     completedActivities: [],
+    status: 'ACTIVE',
   })
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
         estimatedDate: '',
         qualitativeWin: 50,
         completedActivities: [],
+        status: 'ACTIVE',
       })
     }
   }, [opportunityId, isOpen, opportunities])
@@ -145,7 +147,24 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
             />
           </div>
 
-          <div className="space-y-4 col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-100">
+          <div className="space-y-2 col-span-2 md:col-span-1">
+            <Label>Status da Oportunidade</Label>
+            <Select
+              value={formData.status || 'ACTIVE'}
+              onValueChange={(v) => setFormData({ ...formData, status: v as any })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Em Andamento</SelectItem>
+                <SelectItem value="WON">Encerrada - Ganha</SelectItem>
+                <SelectItem value="LOST">Encerrada - Perdida</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-4 col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-100 mt-2">
             <div className="flex justify-between items-center">
               <Label>Probabilidade Qualitativa (Seu feeling)</Label>
               <span className="font-bold text-primary">{formData.qualitativeWin}%</span>
@@ -193,6 +212,17 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
               )}
             </div>
           </div>
+
+          {opportunityId && formData.updatedAt && (
+            <div className="col-span-2 text-xs text-slate-500 text-right mt-2">
+              Data da última atualização: {new Date(formData.updatedAt).toLocaleDateString('pt-BR')}{' '}
+              às{' '}
+              {new Date(formData.updatedAt).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </div>
+          )}
         </div>
 
         <DialogFooter>

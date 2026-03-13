@@ -32,8 +32,9 @@ const mockOpportunities: Opportunity[] = [
       'Identificar origem e validar necessidade potencial',
       'Enriquecer dados básicos da instituição (tipo, porte, comitês, histórico)',
     ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    status: 'ACTIVE',
+    createdAt: new Date(Date.now() - 100000000).toISOString(),
+    updatedAt: new Date(Date.now() - 50000000).toISOString(),
   },
   {
     id: 'o2',
@@ -44,8 +45,9 @@ const mockOpportunities: Opportunity[] = [
     estimatedDate: '2026-05',
     qualitativeWin: 80,
     completedActivities: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    status: 'WON',
+    createdAt: new Date(Date.now() - 200000000).toISOString(),
+    updatedAt: new Date(Date.now() - 10000000).toISOString(),
   },
   {
     id: 'o3',
@@ -56,6 +58,7 @@ const mockOpportunities: Opportunity[] = [
     estimatedDate: '2026-11',
     qualitativeWin: 20,
     completedActivities: [],
+    status: 'LOST',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -70,6 +73,7 @@ export function MainProvider({ children }: { children: ReactNode }) {
   const addOpportunity = (opp: Omit<Opportunity, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newOpp: Opportunity = {
       ...opp,
+      status: opp.status || 'ACTIVE',
       id: Math.random().toString(36).substr(2, 9),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

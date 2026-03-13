@@ -52,9 +52,11 @@ export default function Index() {
       weightedRev += opp.potentialValue * (finalWin / 100)
     })
 
-    const implemented = filteredOpportunities.filter((o) => o.stageId === 'IMPLEMENTAR').length
-    const conversionRate =
-      filteredOpportunities.length > 0 ? (implemented / filteredOpportunities.length) * 100 : 0
+    const closedOpps = filteredOpportunities.filter(
+      (o) => o.status === 'WON' || o.status === 'LOST',
+    )
+    const wonOpps = closedOpps.filter((o) => o.status === 'WON')
+    const conversionRate = closedOpps.length > 0 ? (wonOpps.length / closedOpps.length) * 100 : 0
 
     return {
       totalValue,
@@ -184,7 +186,9 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.conversionRate.toFixed(1)}%</div>
-            <p className="text-xs text-muted-foreground">Leads convertidos em Implementação</p>
+            <p className="text-xs text-muted-foreground">
+              Oportunidades Ganhas vs Total Encerradas
+            </p>
           </CardContent>
         </Card>
       </div>

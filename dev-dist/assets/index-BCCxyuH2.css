@@ -729,6 +729,9 @@ section[aria-label='Notifications alt+T'] {
 .ml-auto{
   margin-left: auto;
 }
+.mr-1{
+  margin-right: 0.25rem;
+}
 .mr-2{
   margin-right: 0.5rem;
 }
@@ -1349,12 +1352,20 @@ section[aria-label='Notifications alt+T'] {
 .border-destructive\/50{
   border-color: hsl(var(--destructive) / 0.5);
 }
+.border-green-500{
+  --tw-border-opacity: 1;
+  border-color: rgb(34 197 94 / var(--tw-border-opacity, 1));
+}
 .border-input{
   border-color: hsl(var(--input));
 }
 .border-primary{
   --tw-border-opacity: 1;
   border-color: rgb(0 118 182 / var(--tw-border-opacity, 1));
+}
+.border-red-500{
+  --tw-border-opacity: 1;
+  border-color: rgb(239 68 68 / var(--tw-border-opacity, 1));
 }
 .border-sidebar-border{
   border-color: hsl(var(--sidebar-border));
@@ -1427,6 +1438,13 @@ section[aria-label='Notifications alt+T'] {
   --tw-bg-opacity: 1;
   background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
 }
+.bg-green-50\/50{
+  background-color: rgb(240 253 244 / 0.5);
+}
+.bg-green-500{
+  --tw-bg-opacity: 1;
+  background-color: rgb(34 197 94 / var(--tw-bg-opacity, 1));
+}
 .bg-muted{
   background-color: hsl(var(--muted));
 }
@@ -1439,6 +1457,9 @@ section[aria-label='Notifications alt+T'] {
 .bg-primary{
   --tw-bg-opacity: 1;
   background-color: rgb(0 118 182 / var(--tw-bg-opacity, 1));
+}
+.bg-red-50\/50{
+  background-color: rgb(254 242 242 / 0.5);
 }
 .bg-secondary{
   background-color: hsl(var(--secondary));
@@ -1504,6 +1525,10 @@ section[aria-label='Notifications alt+T'] {
   padding-left: 0.25rem;
   padding-right: 0.25rem;
 }
+.px-1\.5{
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
 .px-2{
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -1535,6 +1560,10 @@ section[aria-label='Notifications alt+T'] {
 .px-\[--cell-size\]{
   padding-left: var(--cell-size);
   padding-right: var(--cell-size);
+}
+.py-0{
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 .py-0\.5{
   padding-top: 0.125rem;
@@ -2184,6 +2213,10 @@ section[aria-label='Notifications alt+T'] {
 }
 .hover\:bg-destructive\/90:hover{
   background-color: hsl(var(--destructive) / 0.9);
+}
+.hover\:bg-green-600:hover{
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
 }
 .hover\:bg-muted:hover{
   background-color: hsl(var(--muted));

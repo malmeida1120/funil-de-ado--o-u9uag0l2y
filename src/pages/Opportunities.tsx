@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
-import { Download } from 'lucide-react'
+import { Download, Clock } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { OpportunityModal } from '@/components/kanban/OpportunityModal'
 import { useSearchParams } from 'react-router-dom'
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select'
 import { ClientFilter } from '@/components/shared/ClientFilter'
 import { exportOpportunities } from '@/lib/export'
+import { cn } from '@/lib/utils'
 
 export default function Opportunities() {
   const { opportunities, moveOpportunity, products } = useMainStore()
@@ -166,16 +167,33 @@ export default function Opportunities() {
                   return (
                     <Card
                       key={opp.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow active:cursor-grabbing border-slate-200"
+                      className={cn(
+                        'cursor-pointer hover:shadow-md transition-shadow active:cursor-grabbing border-slate-200',
+                        opp.status === 'WON' && 'border-green-500 bg-green-50/50',
+                        opp.status === 'LOST' && 'border-red-500 bg-red-50/50',
+                      )}
                       draggable
                       onDragStart={(e) => handleDragStart(e, opp.id)}
                       onClick={() => setSelectedOppId(opp.id)}
                     >
                       <CardContent className="p-4 space-y-3">
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start gap-2">
                           <span className="font-semibold text-slate-900 leading-tight">
                             {opp.clientName}
                           </span>
+                          {opp.status === 'WON' && (
+                            <Badge className="bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0">
+                              Ganha
+                            </Badge>
+                          )}
+                          {opp.status === 'LOST' && (
+                            <Badge
+                              variant="destructive"
+                              className="shrink-0 text-[10px] px-1.5 py-0"
+                            >
+                              Perdida
+                            </Badge>
+                          )}
                         </div>
                         <div className="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded inline-block">
                           {product?.name || 'Sem Produto'}
@@ -204,6 +222,12 @@ export default function Opportunities() {
                             </span>
                           </div>
                           <Progress value={progress} className="h-1.5" />
+                        </div>
+                        <div className="flex items-center text-[10px] text-slate-400 mt-2 border-t pt-2 border-slate-100">
+                          <Clock className="w-3 h-3 mr-1" />
+                          <span>
+                            Atualizado: {new Date(opp.updatedAt).toLocaleDateString('pt-BR')}
+                          </span>
                         </div>
                       </CardContent>
                     </Card>
