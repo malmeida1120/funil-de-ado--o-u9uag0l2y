@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode } from 'react'
 import { Opportunity, Product, StageId } from '@/types'
 
 interface MainState {
@@ -8,6 +8,8 @@ interface MainState {
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
   moveOpportunity: (id: string, newStage: StageId) => boolean
   addProduct: (product: Omit<Product, 'id'>) => void
+  updateProduct: (id: string, updates: Partial<Product>) => void
+  deleteProduct: (id: string) => void
 }
 
 const mockProducts: Product[] = [
@@ -84,13 +86,20 @@ export function MainProvider({ children }: { children: ReactNode }) {
   }
 
   const moveOpportunity = (id: string, newStage: StageId) => {
-    // Basic validation handled by UI mostly, but we can enforce it here if needed
     updateOpportunity(id, { stageId: newStage })
     return true
   }
 
   const addProduct = (product: Omit<Product, 'id'>) => {
     setProducts((prev) => [...prev, { ...product, id: Math.random().toString(36).substr(2, 9) }])
+  }
+
+  const updateProduct = (id: string, updates: Partial<Product>) => {
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)))
+  }
+
+  const deleteProduct = (id: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== id))
   }
 
   return React.createElement(
@@ -103,6 +112,8 @@ export function MainProvider({ children }: { children: ReactNode }) {
         updateOpportunity,
         moveOpportunity,
         addProduct,
+        updateProduct,
+        deleteProduct,
       },
     },
     children,
