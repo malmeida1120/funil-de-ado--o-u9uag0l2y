@@ -28628,160 +28628,6 @@ function Index() {
 	});
 }
 //#endregion
-//#region ../../cache/modules/funil-de-adocao-e704f/node_modules/.pnpm/@radix-ui+react-context@1.1.3_@types+react@19.2.14_react@19.2.4/node_modules/@radix-ui/react-context/dist/index.mjs
-function createContextScope(scopeName, createContextScopeDeps = []) {
-	let defaultContexts = [];
-	function createContext3(rootComponentName, defaultContext) {
-		const BaseContext = import_react.createContext(defaultContext);
-		BaseContext.displayName = rootComponentName + "Context";
-		const index = defaultContexts.length;
-		defaultContexts = [...defaultContexts, defaultContext];
-		const Provider = (props) => {
-			const { scope, children, ...context } = props;
-			const Context = scope?.[scopeName]?.[index] || BaseContext;
-			const value = import_react.useMemo(() => context, Object.values(context));
-			return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Context.Provider, {
-				value,
-				children
-			});
-		};
-		Provider.displayName = rootComponentName + "Provider";
-		function useContext2(consumerName, scope) {
-			const Context = scope?.[scopeName]?.[index] || BaseContext;
-			const context = import_react.useContext(Context);
-			if (context) return context;
-			if (defaultContext !== void 0) return defaultContext;
-			throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
-		}
-		return [Provider, useContext2];
-	}
-	const createScope = () => {
-		const scopeContexts = defaultContexts.map((defaultContext) => {
-			return import_react.createContext(defaultContext);
-		});
-		return function useScope(scope) {
-			const contexts = scope?.[scopeName] || scopeContexts;
-			return import_react.useMemo(() => ({ [`__scope${scopeName}`]: {
-				...scope,
-				[scopeName]: contexts
-			} }), [scope, contexts]);
-		};
-	};
-	createScope.scopeName = scopeName;
-	return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
-}
-function composeContextScopes(...scopes) {
-	const baseScope = scopes[0];
-	if (scopes.length === 1) return baseScope;
-	const createScope = () => {
-		const scopeHooks = scopes.map((createScope2) => ({
-			useScope: createScope2(),
-			scopeName: createScope2.scopeName
-		}));
-		return function useComposedScopes(overrideScopes) {
-			const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
-				const currentScope = useScope(overrideScopes)[`__scope${scopeName}`];
-				return {
-					...nextScopes2,
-					...currentScope
-				};
-			}, {});
-			return import_react.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
-		};
-	};
-	createScope.scopeName = baseScope.scopeName;
-	return createScope;
-}
-//#endregion
-//#region ../../cache/modules/funil-de-adocao-e704f/node_modules/.pnpm/@radix-ui+react-progress@1.1.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_7258c0b550570cef5cd6f2d2227aa6b9/node_modules/@radix-ui/react-progress/dist/index.mjs
-var PROGRESS_NAME = "Progress";
-var DEFAULT_MAX = 100;
-var [createProgressContext, createProgressScope] = createContextScope(PROGRESS_NAME);
-var [ProgressProvider, useProgressContext] = createProgressContext(PROGRESS_NAME);
-var Progress$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeProgress, value: valueProp = null, max: maxProp, getValueLabel = defaultGetValueLabel, ...progressProps } = props;
-	if ((maxProp || maxProp === 0) && !isValidMaxNumber(maxProp)) console.error(getInvalidMaxError(`${maxProp}`, "Progress"));
-	const max = isValidMaxNumber(maxProp) ? maxProp : DEFAULT_MAX;
-	if (valueProp !== null && !isValidValueNumber(valueProp, max)) console.error(getInvalidValueError(`${valueProp}`, "Progress"));
-	const value = isValidValueNumber(valueProp, max) ? valueProp : null;
-	const valueLabel = isNumber(value) ? getValueLabel(value, max) : void 0;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProgressProvider, {
-		scope: __scopeProgress,
-		value,
-		max,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
-			"aria-valuemax": max,
-			"aria-valuemin": 0,
-			"aria-valuenow": isNumber(value) ? value : void 0,
-			"aria-valuetext": valueLabel,
-			role: "progressbar",
-			"data-state": getProgressState(value, max),
-			"data-value": value ?? void 0,
-			"data-max": max,
-			...progressProps,
-			ref: forwardedRef
-		})
-	});
-});
-Progress$1.displayName = PROGRESS_NAME;
-var INDICATOR_NAME$1 = "ProgressIndicator";
-var ProgressIndicator = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeProgress, ...indicatorProps } = props;
-	const context = useProgressContext(INDICATOR_NAME$1, __scopeProgress);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
-		"data-state": getProgressState(context.value, context.max),
-		"data-value": context.value ?? void 0,
-		"data-max": context.max,
-		...indicatorProps,
-		ref: forwardedRef
-	});
-});
-ProgressIndicator.displayName = INDICATOR_NAME$1;
-function defaultGetValueLabel(value, max) {
-	return `${Math.round(value / max * 100)}%`;
-}
-function getProgressState(value, maxValue) {
-	return value == null ? "indeterminate" : value === maxValue ? "complete" : "loading";
-}
-function isNumber(value) {
-	return typeof value === "number";
-}
-function isValidMaxNumber(max) {
-	return isNumber(max) && !isNaN(max) && max > 0;
-}
-function isValidValueNumber(value, max) {
-	return isNumber(value) && !isNaN(value) && value <= max && value >= 0;
-}
-function getInvalidMaxError(propValue, componentName) {
-	return `Invalid prop \`max\` of value \`${propValue}\` supplied to \`${componentName}\`. Only numbers greater than 0 are valid max values. Defaulting to \`${DEFAULT_MAX}\`.`;
-}
-function getInvalidValueError(propValue, componentName) {
-	return `Invalid prop \`value\` of value \`${propValue}\` supplied to \`${componentName}\`. The \`value\` prop must be:
-  - a positive number
-  - less than the value passed to \`max\` (or ${DEFAULT_MAX} if no \`max\` prop is set)
-  - \`null\` or \`undefined\` if the progress is indeterminate.
-
-Defaulting to \`null\`.`;
-}
-var Root$4 = Progress$1;
-var Indicator = ProgressIndicator;
-//#endregion
-//#region src/components/ui/progress.tsx
-var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$4, {
-	"data-uid": "src/components/ui/progress.tsx:11:3",
-	"data-prohibitions": "[editContent]",
-	ref,
-	className: cn$1("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className),
-	...props,
-	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Indicator, {
-		"data-uid": "src/components/ui/progress.tsx:16:5",
-		"data-prohibitions": "[editContent]",
-		className: "h-full w-full flex-1 bg-primary transition-all",
-		style: { transform: `translateX(-${100 - (value || 0)}%)` }
-	})
-}));
-Progress.displayName = Root$4.displayName;
-//#endregion
 //#region src/components/ui/input.tsx
 var Input = import_react.forwardRef(({ className, type, ...props }, ref) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
@@ -28809,18 +28655,18 @@ var Label$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 Label$1.displayName = NAME$1;
-var Root$3 = Label$1;
+var Root$4 = Label$1;
 //#endregion
 //#region src/components/ui/label.tsx
 var labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
-var Label = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
+var Label = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$4, {
 	"data-uid": "src/components/ui/label.tsx:16:3",
 	"data-prohibitions": "[editContent]",
 	ref,
 	className: cn$1(labelVariants(), className),
 	...props
 }));
-Label.displayName = Root$3.displayName;
+Label.displayName = Root$4.displayName;
 //#endregion
 //#region ../../cache/modules/funil-de-adocao-e704f/node_modules/.pnpm/@radix-ui+react-slider@1.3.6_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_c6a3fae91eb6750caf661d179680cb4a/node_modules/@radix-ui/react-slider/dist/index.mjs
 var PAGE_KEYS = ["PageUp", "PageDown"];
@@ -29256,13 +29102,13 @@ function roundValue(value, decimalCount) {
 	const rounder = Math.pow(10, decimalCount);
 	return Math.round(value * rounder) / rounder;
 }
-var Root$2 = Slider$1;
+var Root$3 = Slider$1;
 var Track = SliderTrack;
 var Range = SliderRange;
 var Thumb = SliderThumb;
 //#endregion
 //#region src/components/ui/slider.tsx
-var Slider = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Root$2, {
+var Slider = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Root$3, {
 	"data-uid": "src/components/ui/slider.tsx:11:3",
 	"data-prohibitions": "[editContent]",
 	ref,
@@ -29283,7 +29129,7 @@ var Slider = import_react.forwardRef(({ className, ...props }, ref) => /* @__PUR
 		className: "block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
 	})]
 }));
-Slider.displayName = Root$2.displayName;
+Slider.displayName = Root$3.displayName;
 //#endregion
 //#region ../../cache/modules/funil-de-adocao-e704f/node_modules/.pnpm/@radix-ui+react-checkbox@1.3.3_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_a9bfe74df417688e01ae6068318bf0dd/node_modules/@radix-ui/react-checkbox/dist/index.mjs
 var CHECKBOX_NAME = "Checkbox";
@@ -29380,10 +29226,10 @@ var Checkbox$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 Checkbox$1.displayName = CHECKBOX_NAME;
-var INDICATOR_NAME = "CheckboxIndicator";
+var INDICATOR_NAME$1 = "CheckboxIndicator";
 var CheckboxIndicator = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeCheckbox, forceMount, ...indicatorProps } = props;
-	const context = useCheckboxContext(INDICATOR_NAME, __scopeCheckbox);
+	const context = useCheckboxContext(INDICATOR_NAME$1, __scopeCheckbox);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || isIndeterminate(context.checked) || context.checked === true,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
@@ -29398,7 +29244,7 @@ var CheckboxIndicator = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-CheckboxIndicator.displayName = INDICATOR_NAME;
+CheckboxIndicator.displayName = INDICATOR_NAME$1;
 var BUBBLE_INPUT_NAME = "CheckboxBubbleInput";
 var CheckboxBubbleInput = import_react.forwardRef(({ __scopeCheckbox, ...props }, forwardedRef) => {
 	const { control, hasConsumerStoppedPropagationRef, checked, defaultChecked, required, disabled, name, value, form, bubbleInput, setBubbleInput } = useCheckboxContext(BUBBLE_INPUT_NAME, __scopeCheckbox);
@@ -29847,9 +29693,351 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 	});
 }
 //#endregion
+//#region ../../cache/modules/funil-de-adocao-e704f/node_modules/.pnpm/@radix-ui+react-context@1.1.3_@types+react@19.2.14_react@19.2.4/node_modules/@radix-ui/react-context/dist/index.mjs
+function createContextScope(scopeName, createContextScopeDeps = []) {
+	let defaultContexts = [];
+	function createContext3(rootComponentName, defaultContext) {
+		const BaseContext = import_react.createContext(defaultContext);
+		BaseContext.displayName = rootComponentName + "Context";
+		const index = defaultContexts.length;
+		defaultContexts = [...defaultContexts, defaultContext];
+		const Provider = (props) => {
+			const { scope, children, ...context } = props;
+			const Context = scope?.[scopeName]?.[index] || BaseContext;
+			const value = import_react.useMemo(() => context, Object.values(context));
+			return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Context.Provider, {
+				value,
+				children
+			});
+		};
+		Provider.displayName = rootComponentName + "Provider";
+		function useContext2(consumerName, scope) {
+			const Context = scope?.[scopeName]?.[index] || BaseContext;
+			const context = import_react.useContext(Context);
+			if (context) return context;
+			if (defaultContext !== void 0) return defaultContext;
+			throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
+		}
+		return [Provider, useContext2];
+	}
+	const createScope = () => {
+		const scopeContexts = defaultContexts.map((defaultContext) => {
+			return import_react.createContext(defaultContext);
+		});
+		return function useScope(scope) {
+			const contexts = scope?.[scopeName] || scopeContexts;
+			return import_react.useMemo(() => ({ [`__scope${scopeName}`]: {
+				...scope,
+				[scopeName]: contexts
+			} }), [scope, contexts]);
+		};
+	};
+	createScope.scopeName = scopeName;
+	return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
+}
+function composeContextScopes(...scopes) {
+	const baseScope = scopes[0];
+	if (scopes.length === 1) return baseScope;
+	const createScope = () => {
+		const scopeHooks = scopes.map((createScope2) => ({
+			useScope: createScope2(),
+			scopeName: createScope2.scopeName
+		}));
+		return function useComposedScopes(overrideScopes) {
+			const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
+				const currentScope = useScope(overrideScopes)[`__scope${scopeName}`];
+				return {
+					...nextScopes2,
+					...currentScope
+				};
+			}, {});
+			return import_react.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
+		};
+	};
+	createScope.scopeName = baseScope.scopeName;
+	return createScope;
+}
+//#endregion
+//#region ../../cache/modules/funil-de-adocao-e704f/node_modules/.pnpm/@radix-ui+react-progress@1.1.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_7258c0b550570cef5cd6f2d2227aa6b9/node_modules/@radix-ui/react-progress/dist/index.mjs
+var PROGRESS_NAME = "Progress";
+var DEFAULT_MAX = 100;
+var [createProgressContext, createProgressScope] = createContextScope(PROGRESS_NAME);
+var [ProgressProvider, useProgressContext] = createProgressContext(PROGRESS_NAME);
+var Progress$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeProgress, value: valueProp = null, max: maxProp, getValueLabel = defaultGetValueLabel, ...progressProps } = props;
+	if ((maxProp || maxProp === 0) && !isValidMaxNumber(maxProp)) console.error(getInvalidMaxError(`${maxProp}`, "Progress"));
+	const max = isValidMaxNumber(maxProp) ? maxProp : DEFAULT_MAX;
+	if (valueProp !== null && !isValidValueNumber(valueProp, max)) console.error(getInvalidValueError(`${valueProp}`, "Progress"));
+	const value = isValidValueNumber(valueProp, max) ? valueProp : null;
+	const valueLabel = isNumber(value) ? getValueLabel(value, max) : void 0;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProgressProvider, {
+		scope: __scopeProgress,
+		value,
+		max,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+			"aria-valuemax": max,
+			"aria-valuemin": 0,
+			"aria-valuenow": isNumber(value) ? value : void 0,
+			"aria-valuetext": valueLabel,
+			role: "progressbar",
+			"data-state": getProgressState(value, max),
+			"data-value": value ?? void 0,
+			"data-max": max,
+			...progressProps,
+			ref: forwardedRef
+		})
+	});
+});
+Progress$1.displayName = PROGRESS_NAME;
+var INDICATOR_NAME = "ProgressIndicator";
+var ProgressIndicator = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeProgress, ...indicatorProps } = props;
+	const context = useProgressContext(INDICATOR_NAME, __scopeProgress);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		"data-state": getProgressState(context.value, context.max),
+		"data-value": context.value ?? void 0,
+		"data-max": context.max,
+		...indicatorProps,
+		ref: forwardedRef
+	});
+});
+ProgressIndicator.displayName = INDICATOR_NAME;
+function defaultGetValueLabel(value, max) {
+	return `${Math.round(value / max * 100)}%`;
+}
+function getProgressState(value, maxValue) {
+	return value == null ? "indeterminate" : value === maxValue ? "complete" : "loading";
+}
+function isNumber(value) {
+	return typeof value === "number";
+}
+function isValidMaxNumber(max) {
+	return isNumber(max) && !isNaN(max) && max > 0;
+}
+function isValidValueNumber(value, max) {
+	return isNumber(value) && !isNaN(value) && value <= max && value >= 0;
+}
+function getInvalidMaxError(propValue, componentName) {
+	return `Invalid prop \`max\` of value \`${propValue}\` supplied to \`${componentName}\`. Only numbers greater than 0 are valid max values. Defaulting to \`${DEFAULT_MAX}\`.`;
+}
+function getInvalidValueError(propValue, componentName) {
+	return `Invalid prop \`value\` of value \`${propValue}\` supplied to \`${componentName}\`. The \`value\` prop must be:
+  - a positive number
+  - less than the value passed to \`max\` (or ${DEFAULT_MAX} if no \`max\` prop is set)
+  - \`null\` or \`undefined\` if the progress is indeterminate.
+
+Defaulting to \`null\`.`;
+}
+var Root$2 = Progress$1;
+var Indicator = ProgressIndicator;
+//#endregion
+//#region src/components/ui/progress.tsx
+var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$2, {
+	"data-uid": "src/components/ui/progress.tsx:11:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className),
+	...props,
+	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Indicator, {
+		"data-uid": "src/components/ui/progress.tsx:16:5",
+		"data-prohibitions": "[editContent]",
+		className: "h-full w-full flex-1 bg-primary transition-all",
+		style: { transform: `translateX(-${100 - (value || 0)}%)` }
+	})
+}));
+Progress.displayName = Root$2.displayName;
+//#endregion
+//#region src/components/kanban/OpportunityCard.tsx
+function OpportunityCard({ opp, product, onClick, onDragStart }) {
+	const stage = STAGES[opp.stageId];
+	const requiredActs = STAGE_CHECKLISTS[opp.stageId] || [];
+	const completedActs = (opp.completedActivities || []).filter((a) => requiredActs.includes(a));
+	const progress = requiredActs.length ? completedActs.length / requiredActs.length * 100 : 100;
+	const finalWin = Math.round(((opp.qualitativeWin || 0) + stage.winPercentage) / 2);
+	const formatCurrency = (val) => new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+		maximumFractionDigits: 0
+	}).format(val);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+		"data-uid": "src/components/kanban/OpportunityCard.tsx:31:5",
+		"data-prohibitions": "[editContent]",
+		className: cn$1("cursor-pointer hover:shadow-md transition-shadow active:cursor-grabbing border-slate-200", opp.status === "WON" && "border-green-500 bg-green-50/50", opp.status === "LOST" && "border-red-500 bg-red-50/50"),
+		draggable: true,
+		onDragStart: (e) => onDragStart(e, opp.id),
+		onClick,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+			"data-uid": "src/components/kanban/OpportunityCard.tsx:41:7",
+			"data-prohibitions": "[editContent]",
+			className: "p-4 space-y-3",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:42:9",
+					"data-prohibitions": "[editContent]",
+					className: "flex justify-between items-start gap-2",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:43:11",
+							"data-prohibitions": "[editContent]",
+							className: "font-semibold text-slate-900 leading-tight",
+							children: opp.clientName
+						}),
+						opp.status === "WON" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:45:13",
+							"data-prohibitions": "[]",
+							className: "bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0",
+							children: "Ganha"
+						}),
+						opp.status === "LOST" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:50:13",
+							"data-prohibitions": "[]",
+							variant: "destructive",
+							className: "shrink-0 text-[10px] px-1.5 py-0",
+							children: "Perdida"
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:55:9",
+					"data-prohibitions": "[editContent]",
+					className: "text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded inline-block",
+					children: product?.name || "Sem Produto"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:58:9",
+					"data-prohibitions": "[editContent]",
+					className: "flex justify-between items-end text-sm",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:59:11",
+						"data-prohibitions": "[editContent]",
+						className: "flex flex-col",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:60:13",
+							"data-prohibitions": "[]",
+							className: "text-slate-400 text-xs",
+							children: "Potencial"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:61:13",
+							"data-prohibitions": "[editContent]",
+							className: "font-medium text-slate-700",
+							children: formatCurrency(opp.potentialValue)
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:63:11",
+						"data-prohibitions": "[editContent]",
+						className: "flex flex-col items-end",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:64:13",
+							"data-prohibitions": "[]",
+							className: "text-slate-400 text-xs",
+							children: "Prob. Final"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:65:13",
+							"data-prohibitions": "[editContent]",
+							className: `font-bold ${finalWin > 60 ? "text-green-600" : finalWin > 30 ? "text-amber-500" : "text-red-500"}`,
+							children: [finalWin, "%"]
+						})]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:72:9",
+					"data-prohibitions": "[editContent]",
+					className: "space-y-1",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:73:11",
+						"data-prohibitions": "[editContent]",
+						className: "flex justify-between text-[10px] text-slate-500",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:74:13",
+							"data-prohibitions": "[]",
+							children: "Checklist da Fase"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:75:13",
+							"data-prohibitions": "[editContent]",
+							children: [
+								completedActs.length,
+								"/",
+								requiredActs.length
+							]
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:79:11",
+						"data-prohibitions": "[editContent]",
+						value: progress,
+						className: "h-1.5"
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:81:9",
+					"data-prohibitions": "[editContent]",
+					className: "flex items-center text-[10px] text-slate-400 mt-2 border-t pt-2 border-slate-100",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:82:11",
+						"data-prohibitions": "[editContent]",
+						className: "w-3 h-3 mr-1"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:83:11",
+						"data-prohibitions": "[editContent]",
+						children: ["Atualizado: ", new Date(opp.updatedAt).toLocaleDateString("pt-BR")]
+					})]
+				})
+			]
+		})
+	});
+}
+//#endregion
+//#region src/components/kanban/KanbanColumn.tsx
+function KanbanColumn({ id, title, count, color, bgColor, opps, products, onDrop, onDragOver, onDragStart, onOppClick }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/components/kanban/KanbanColumn.tsx:33:5",
+		"data-prohibitions": "[editContent]",
+		className: `flex-shrink-0 w-80 rounded-xl border border-slate-200 flex flex-col ${bgColor}`,
+		onDrop: (e) => onDrop(e, id),
+		onDragOver,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			"data-uid": "src/components/kanban/KanbanColumn.tsx:38:7",
+			"data-prohibitions": "[editContent]",
+			className: "h-12 flex items-center px-4 rounded-t-xl shrink-0",
+			style: {
+				borderTop: `4px solid ${color}`,
+				backgroundColor: "white"
+			},
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+				"data-uid": "src/components/kanban/KanbanColumn.tsx:42:9",
+				"data-prohibitions": "[editContent]",
+				className: "font-semibold text-slate-800 flex-1",
+				children: title
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+				"data-uid": "src/components/kanban/KanbanColumn.tsx:43:9",
+				"data-prohibitions": "[editContent]",
+				variant: "secondary",
+				className: "bg-slate-100",
+				children: count
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			"data-uid": "src/components/kanban/KanbanColumn.tsx:48:7",
+			"data-prohibitions": "[editContent]",
+			className: "p-3 flex-1 overflow-y-auto space-y-3",
+			children: [opps.map((opp) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OpportunityCard, {
+				"data-uid": "src/components/kanban/KanbanColumn.tsx:50:11",
+				"data-prohibitions": "[editContent]",
+				opp,
+				product: products.find((p) => p.id === opp.productId),
+				onClick: () => onOppClick(opp.id),
+				onDragStart
+			}, opp.id)), opps.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/components/kanban/KanbanColumn.tsx:59:11",
+				"data-prohibitions": "[]",
+				className: "text-center p-4 text-sm text-slate-400 border-2 border-dashed border-slate-200 rounded-lg bg-white/50",
+				children: "Arraste cards para cá"
+			})]
+		})]
+	});
+}
+//#endregion
 //#region src/pages/Opportunities.tsx
 function Opportunities() {
-	const { opportunities, moveOpportunity, products } = useMainStore();
+	const { opportunities, updateOpportunity, products } = useMainStore();
 	const { toast } = useToast();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const [selectedOppId, setSelectedOppId] = (0, import_react.useState)(null);
@@ -29878,11 +30066,16 @@ function Opportunities() {
 	const handleDragStart = (e, oppId) => {
 		e.dataTransfer.setData("oppId", oppId);
 	};
-	const handleDrop = (e, targetStage) => {
+	const handleDrop = (e, targetId) => {
 		e.preventDefault();
 		const oppId = e.dataTransfer.getData("oppId");
 		const opp = opportunities.find((o) => o.id === oppId);
 		if (!opp) return;
+		if (targetId === "WON" || targetId === "LOST") {
+			updateOpportunity(oppId, { status: targetId });
+			return;
+		}
+		const targetStage = targetId;
 		const currentStageIdx = STAGE_ORDER.indexOf(opp.stageId);
 		if (STAGE_ORDER.indexOf(targetStage) > currentStageIdx) {
 			const requiredActivities = STAGE_CHECKLISTS[opp.stageId] || [];
@@ -29896,41 +30089,41 @@ function Opportunities() {
 				return;
 			}
 		}
-		moveOpportunity(oppId, targetStage);
+		updateOpportunity(oppId, {
+			stageId: targetStage,
+			status: "ACTIVE"
+		});
 	};
 	const handleDragOver = (e) => {
 		e.preventDefault();
 	};
-	const formatCurrency = (val) => new Intl.NumberFormat("pt-BR", {
-		style: "currency",
-		currency: "BRL",
-		maximumFractionDigits: 0
-	}).format(val);
+	const wonOpps = filteredOpportunities.filter((o) => o.status === "WON");
+	const lostOpps = filteredOpportunities.filter((o) => o.status === "LOST");
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Opportunities.tsx:96:5",
+		"data-uid": "src/pages/Opportunities.tsx:95:5",
 		"data-prohibitions": "[editContent]",
 		className: "h-full flex flex-col animate-fade-in space-y-4",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/pages/Opportunities.tsx:97:7",
+				"data-uid": "src/pages/Opportunities.tsx:96:7",
 				"data-prohibitions": "[editContent]",
 				className: "flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-					"data-uid": "src/pages/Opportunities.tsx:98:9",
+					"data-uid": "src/pages/Opportunities.tsx:97:9",
 					"data-prohibitions": "[]",
 					className: "text-2xl font-bold tracking-tight",
 					children: "Pipeline de Oportunidades"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Opportunities.tsx:99:9",
+					"data-uid": "src/pages/Opportunities.tsx:98:9",
 					"data-prohibitions": "[editContent]",
 					className: "flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/pages/Opportunities.tsx:100:11",
+							"data-uid": "src/pages/Opportunities.tsx:99:11",
 							"data-prohibitions": "[]",
 							className: "w-full sm:w-auto",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClientFilter, {
-								"data-uid": "src/pages/Opportunities.tsx:101:13",
+								"data-uid": "src/pages/Opportunities.tsx:100:13",
 								"data-prohibitions": "[editContent]",
 								options: uniqueClients,
 								selected: selectedClients,
@@ -29938,33 +30131,33 @@ function Opportunities() {
 							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/pages/Opportunities.tsx:107:11",
+							"data-uid": "src/pages/Opportunities.tsx:106:11",
 							"data-prohibitions": "[editContent]",
 							className: "w-full sm:w-64",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Opportunities.tsx:108:13",
+								"data-uid": "src/pages/Opportunities.tsx:107:13",
 								"data-prohibitions": "[editContent]",
 								value: selectedProductId,
 								onValueChange: setSelectedProductId,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Opportunities.tsx:109:15",
+									"data-uid": "src/pages/Opportunities.tsx:108:15",
 									"data-prohibitions": "[]",
 									className: "bg-white",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Opportunities.tsx:110:17",
+										"data-uid": "src/pages/Opportunities.tsx:109:17",
 										"data-prohibitions": "[editContent]",
 										placeholder: "Filtrar por Produto"
 									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-									"data-uid": "src/pages/Opportunities.tsx:112:15",
+									"data-uid": "src/pages/Opportunities.tsx:111:15",
 									"data-prohibitions": "[editContent]",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Opportunities.tsx:113:17",
+										"data-uid": "src/pages/Opportunities.tsx:112:17",
 										"data-prohibitions": "[]",
 										value: "ALL",
 										children: "Todos os Produtos"
 									}), products.map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Opportunities.tsx:115:19",
+										"data-uid": "src/pages/Opportunities.tsx:114:19",
 										"data-prohibitions": "[editContent]",
 										value: p.id,
 										children: p.name
@@ -29973,13 +30166,13 @@ function Opportunities() {
 							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-							"data-uid": "src/pages/Opportunities.tsx:122:11",
+							"data-uid": "src/pages/Opportunities.tsx:121:11",
 							"data-prohibitions": "[]",
 							variant: "outline",
 							className: "w-full sm:w-auto bg-white",
 							onClick: () => exportOpportunities(filteredOpportunities, products),
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, {
-								"data-uid": "src/pages/Opportunities.tsx:127:13",
+								"data-uid": "src/pages/Opportunities.tsx:126:13",
 								"data-prohibitions": "[editContent]",
 								className: "mr-2 h-4 w-4"
 							}), "Exportar Excel"]
@@ -29987,186 +30180,64 @@ function Opportunities() {
 					]
 				})]
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				"data-uid": "src/pages/Opportunities.tsx:133:7",
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Opportunities.tsx:132:7",
 				"data-prohibitions": "[editContent]",
 				className: "flex-1 flex gap-4 overflow-x-auto pb-4",
-				children: STAGE_ORDER.map((stageId) => {
-					const stage = STAGES[stageId];
-					const stageOpps = filteredOpportunities.filter((o) => o.stageId === stageId);
-					return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Opportunities.tsx:139:13",
+				children: [
+					STAGE_ORDER.map((stageId) => {
+						const stage = STAGES[stageId];
+						const stageOpps = filteredOpportunities.filter((o) => o.stageId === stageId && (o.status === "ACTIVE" || !o.status));
+						return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(KanbanColumn, {
+							"data-uid": "src/pages/Opportunities.tsx:140:13",
+							"data-prohibitions": "[editContent]",
+							id: stageId,
+							title: stage.label,
+							count: stageOpps.length,
+							color: stage.hexColor,
+							bgColor: "bg-slate-100/50",
+							opps: stageOpps,
+							products,
+							onDrop: handleDrop,
+							onDragOver: handleDragOver,
+							onDragStart: handleDragStart,
+							onOppClick: setSelectedOppId
+						}, stageId);
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(KanbanColumn, {
+						"data-uid": "src/pages/Opportunities.tsx:157:9",
 						"data-prohibitions": "[editContent]",
-						className: "flex-shrink-0 w-80 bg-slate-100/50 rounded-xl border border-slate-200 flex flex-col",
-						onDrop: (e) => handleDrop(e, stageId),
+						id: "WON",
+						title: "Encerradas Ganhas",
+						count: wonOpps.length,
+						color: "#22c55e",
+						bgColor: "bg-green-50/50",
+						opps: wonOpps,
+						products,
+						onDrop: handleDrop,
 						onDragOver: handleDragOver,
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Opportunities.tsx:145:15",
-							"data-prohibitions": "[editContent]",
-							className: "h-12 flex items-center px-4 rounded-t-xl shrink-0",
-							style: {
-								borderTop: `4px solid ${stage.hexColor}`,
-								backgroundColor: "white"
-							},
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
-								"data-uid": "src/pages/Opportunities.tsx:149:17",
-								"data-prohibitions": "[editContent]",
-								className: "font-semibold text-slate-800 flex-1",
-								children: stage.label
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-								"data-uid": "src/pages/Opportunities.tsx:150:17",
-								"data-prohibitions": "[editContent]",
-								variant: "secondary",
-								className: "bg-slate-100",
-								children: stageOpps.length
-							})]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Opportunities.tsx:155:15",
-							"data-prohibitions": "[editContent]",
-							className: "p-3 flex-1 overflow-y-auto space-y-3",
-							children: [stageOpps.map((opp) => {
-								const product = products.find((p) => p.id === opp.productId);
-								const requiredActs = STAGE_CHECKLISTS[stageId] || [];
-								const completedActs = (opp.completedActivities || []).filter((a) => requiredActs.includes(a));
-								const progress = requiredActs.length ? completedActs.length / requiredActs.length * 100 : 100;
-								const finalWin = Math.round(((opp.qualitativeWin || 0) + stage.winPercentage) / 2);
-								return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-									"data-uid": "src/pages/Opportunities.tsx:168:21",
-									"data-prohibitions": "[editContent]",
-									className: cn$1("cursor-pointer hover:shadow-md transition-shadow active:cursor-grabbing border-slate-200", opp.status === "WON" && "border-green-500 bg-green-50/50", opp.status === "LOST" && "border-red-500 bg-red-50/50"),
-									draggable: true,
-									onDragStart: (e) => handleDragStart(e, opp.id),
-									onClick: () => setSelectedOppId(opp.id),
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-										"data-uid": "src/pages/Opportunities.tsx:179:23",
-										"data-prohibitions": "[editContent]",
-										className: "p-4 space-y-3",
-										children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												"data-uid": "src/pages/Opportunities.tsx:180:25",
-												"data-prohibitions": "[editContent]",
-												className: "flex justify-between items-start gap-2",
-												children: [
-													/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														"data-uid": "src/pages/Opportunities.tsx:181:27",
-														"data-prohibitions": "[editContent]",
-														className: "font-semibold text-slate-900 leading-tight",
-														children: opp.clientName
-													}),
-													opp.status === "WON" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-														"data-uid": "src/pages/Opportunities.tsx:185:29",
-														"data-prohibitions": "[]",
-														className: "bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0",
-														children: "Ganha"
-													}),
-													opp.status === "LOST" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-														"data-uid": "src/pages/Opportunities.tsx:190:29",
-														"data-prohibitions": "[]",
-														variant: "destructive",
-														className: "shrink-0 text-[10px] px-1.5 py-0",
-														children: "Perdida"
-													})
-												]
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												"data-uid": "src/pages/Opportunities.tsx:198:25",
-												"data-prohibitions": "[editContent]",
-												className: "text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded inline-block",
-												children: product?.name || "Sem Produto"
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												"data-uid": "src/pages/Opportunities.tsx:201:25",
-												"data-prohibitions": "[editContent]",
-												className: "flex justify-between items-end text-sm",
-												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													"data-uid": "src/pages/Opportunities.tsx:202:27",
-													"data-prohibitions": "[editContent]",
-													className: "flex flex-col",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														"data-uid": "src/pages/Opportunities.tsx:203:29",
-														"data-prohibitions": "[]",
-														className: "text-slate-400 text-xs",
-														children: "Potencial"
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														"data-uid": "src/pages/Opportunities.tsx:204:29",
-														"data-prohibitions": "[editContent]",
-														className: "font-medium text-slate-700",
-														children: formatCurrency(opp.potentialValue)
-													})]
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													"data-uid": "src/pages/Opportunities.tsx:208:27",
-													"data-prohibitions": "[editContent]",
-													className: "flex flex-col items-end",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														"data-uid": "src/pages/Opportunities.tsx:209:29",
-														"data-prohibitions": "[]",
-														className: "text-slate-400 text-xs",
-														children: "Prob. Final"
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-														"data-uid": "src/pages/Opportunities.tsx:210:29",
-														"data-prohibitions": "[editContent]",
-														className: `font-bold ${finalWin > 60 ? "text-green-600" : finalWin > 30 ? "text-amber-500" : "text-red-500"}`,
-														children: [finalWin, "%"]
-													})]
-												})]
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												"data-uid": "src/pages/Opportunities.tsx:217:25",
-												"data-prohibitions": "[editContent]",
-												className: "space-y-1",
-												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													"data-uid": "src/pages/Opportunities.tsx:218:27",
-													"data-prohibitions": "[editContent]",
-													className: "flex justify-between text-[10px] text-slate-500",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														"data-uid": "src/pages/Opportunities.tsx:219:29",
-														"data-prohibitions": "[]",
-														children: "Checklist da Fase"
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-														"data-uid": "src/pages/Opportunities.tsx:220:29",
-														"data-prohibitions": "[editContent]",
-														children: [
-															completedActs.length,
-															"/",
-															requiredActs.length
-														]
-													})]
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
-													"data-uid": "src/pages/Opportunities.tsx:224:27",
-													"data-prohibitions": "[editContent]",
-													value: progress,
-													className: "h-1.5"
-												})]
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												"data-uid": "src/pages/Opportunities.tsx:226:25",
-												"data-prohibitions": "[editContent]",
-												className: "flex items-center text-[10px] text-slate-400 mt-2 border-t pt-2 border-slate-100",
-												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, {
-													"data-uid": "src/pages/Opportunities.tsx:227:27",
-													"data-prohibitions": "[editContent]",
-													className: "w-3 h-3 mr-1"
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-													"data-uid": "src/pages/Opportunities.tsx:228:27",
-													"data-prohibitions": "[editContent]",
-													children: ["Atualizado: ", new Date(opp.updatedAt).toLocaleDateString("pt-BR")]
-												})]
-											})
-										]
-									})
-								}, opp.id);
-							}), stageOpps.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								"data-uid": "src/pages/Opportunities.tsx:237:19",
-								"data-prohibitions": "[]",
-								className: "text-center p-4 text-sm text-slate-400 border-2 border-dashed border-slate-200 rounded-lg",
-								children: "Arraste cards para cá"
-							})]
-						})]
-					}, stageId);
-				})
+						onDragStart: handleDragStart,
+						onOppClick: setSelectedOppId
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(KanbanColumn, {
+						"data-uid": "src/pages/Opportunities.tsx:171:9",
+						"data-prohibitions": "[editContent]",
+						id: "LOST",
+						title: "Encerradas Perdidas",
+						count: lostOpps.length,
+						color: "#ef4444",
+						bgColor: "bg-red-50/50",
+						opps: lostOpps,
+						products,
+						onDrop: handleDrop,
+						onDragOver: handleDragOver,
+						onDragStart: handleDragStart,
+						onOppClick: setSelectedOppId
+					})
+				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(OpportunityModal, {
-				"data-uid": "src/pages/Opportunities.tsx:247:7",
+				"data-uid": "src/pages/Opportunities.tsx:186:7",
 				"data-prohibitions": "[editContent]",
 				isOpen: !!selectedOppId || isNewOpen,
 				onClose: closeModals,
@@ -31820,4 +31891,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-BdnGhczJ.js.map
+//# sourceMappingURL=index-Blv0SLhV.js.map
