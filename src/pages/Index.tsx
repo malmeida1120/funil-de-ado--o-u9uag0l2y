@@ -7,10 +7,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { useMainStore } from '@/stores/main'
 import FunnelChart from '@/components/dashboard/FunnelChart'
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
-import { STAGES } from '@/lib/constants'
+import { STAGES, STAGE_ORDER } from '@/lib/constants'
 
 export default function Index() {
   const { opportunities, products } = useMainStore()
@@ -43,25 +50,37 @@ export default function Index() {
     }
   }, [filteredOpportunities])
 
-  const chartData = useMemo(() => {
-    // Group weighted revenue by estimated Date
-    const grouped = filteredOpportunities.reduce(
-      (acc, opp) => {
-        const date = opp.estimatedDate || 'S/D'
-        if (!acc[date]) acc[date] = 0
-        const stageWin = STAGES[opp.stageId].winPercentage
-        const finalWin = (opp.qualitativeWin + stageWin) / 2
-        acc[date] += opp.potentialValue * (finalWin / 100)
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-
-    return Object.entries(grouped)
-      .map(([date, value]) => ({ date, value }))
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 12) // Show max 12 periods
+  const uniqueMonths = useMemo(() => {
+    const months = new Set<string>()
+    filteredOpportunities.forEach((opp) => {
+      months.add(opp.estimatedDate || 'S/D')
+    })
+    return Array.from(months).sort((a, b) => {
+      if (a === 'S/D') return 1
+      if (b === 'S/D') return -1
+      return a.localeCompare(b)
+    })
   }, [filteredOpportunities])
+
+  const forecastMatrix = useMemo(() => {
+    const matrix: Record<string, Record<string, number>> = {}
+    STAGE_ORDER.forEach((stageId) => {
+      matrix[stageId] = {}
+      uniqueMonths.forEach((month) => {
+        matrix[stageId][month] = 0
+      })
+    })
+
+    filteredOpportunities.forEach((opp) => {
+      const month = opp.estimatedDate || 'S/D'
+      if (matrix[opp.stageId] && matrix[opp.stageId][month] !== undefined) {
+        matrix[opp.stageId][month] += opp.potentialValue
+      } else if (matrix[opp.stageId]) {
+        matrix[opp.stageId][month] = opp.potentialValue
+      }
+    })
+    return matrix
+  }, [filteredOpportunities, uniqueMonths])
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', {
@@ -70,8 +89,19 @@ export default function Index() {
       maximumFractionDigits: 0,
     }).format(val)
 
+  const formatMonth = (val: string) => {
+    if (val === 'S/D') return 'Sem Data'
+    const [year, month] = val.split('-')
+    if (!year || !month) return val
+    const date = new Date(parseInt(year), parseInt(month) - 1)
+    let formatted = new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(
+      date,
+    )
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+  }
+
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up pb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Dashboard Executivo</h2>
@@ -129,53 +159,83 @@ export default function Index() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="col-span-1">
+      <div className="grid gap-6 md:grid-cols-1">
+        <Card>
           <CardHeader>
             <CardTitle>Funil de Adoção Institucional</CardTitle>
-            <CardDescription>Volume e valor das oportunidades por etapa</CardDescription>
+            <CardDescription>Volume e valor bruto das oportunidades por etapa</CardDescription>
           </CardHeader>
-          <CardContent className="h-[350px] flex items-center justify-center">
+          <CardContent className="min-h-[350px] flex items-center justify-center pt-0">
             <FunnelChart opportunities={filteredOpportunities} />
           </CardContent>
         </Card>
-        <Card className="col-span-1">
+        <Card>
           <CardHeader>
-            <CardTitle>Forecast de Faturamento</CardTitle>
-            <CardDescription>Receita ponderada projetada por data de implementação</CardDescription>
+            <CardTitle>Matriz de Forecast de Faturamento</CardTitle>
+            <CardDescription>
+              Valor total bruto projetado por data de implementação e fase do funil
+            </CardDescription>
           </CardHeader>
-          <CardContent className="h-[350px]">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis
-                    dataKey="date"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                    tickFormatter={(val) => `R$ ${val / 1000}k`}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => formatCurrency(value)}
-                    cursor={{ fill: '#f3f4f6' }}
-                    contentStyle={{
-                      borderRadius: '8px',
-                      border: 'none',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                    }}
-                  />
-                  <Bar dataKey="value" fill="#0076B6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+          <CardContent>
+            {uniqueMonths.length > 0 ? (
+              <div className="overflow-x-auto rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[200px] bg-slate-50/50">
+                        Fase (Probabilidade)
+                      </TableHead>
+                      {uniqueMonths.map((month) => (
+                        <TableHead
+                          key={month}
+                          className="text-right whitespace-nowrap bg-slate-50/50"
+                        >
+                          {formatMonth(month)}
+                        </TableHead>
+                      ))}
+                      <TableHead className="text-right font-bold whitespace-nowrap bg-slate-50/50">
+                        Total Geral
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {STAGE_ORDER.map((stageId) => {
+                      const stage = STAGES[stageId]
+                      const rowTotal = uniqueMonths.reduce(
+                        (sum, month) => sum + (forecastMatrix[stageId][month] || 0),
+                        0,
+                      )
+                      return (
+                        <TableRow key={stageId}>
+                          <TableCell className="font-medium whitespace-nowrap border-r bg-slate-50/30">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: stage.hexColor }}
+                              />
+                              {stage.label} ({stage.winPercentage}%)
+                            </div>
+                          </TableCell>
+                          {uniqueMonths.map((month) => {
+                            const val = forecastMatrix[stageId][month] || 0
+                            return (
+                              <TableCell key={month} className="text-right whitespace-nowrap">
+                                {val > 0 ? formatCurrency(val) : '-'}
+                              </TableCell>
+                            )
+                          })}
+                          <TableCell className="text-right font-bold whitespace-nowrap bg-slate-50/30">
+                            {formatCurrency(rowTotal)}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                Sem dados suficientes
+              <div className="h-40 flex items-center justify-center text-muted-foreground border border-dashed rounded-lg">
+                Sem dados suficientes para gerar a matriz
               </div>
             )}
           </CardContent>

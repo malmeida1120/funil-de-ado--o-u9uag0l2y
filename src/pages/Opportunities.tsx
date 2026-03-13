@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useMainStore } from '@/stores/main'
 import { STAGE_ORDER, STAGES, STAGE_CHECKLISTS } from '@/lib/constants'
 import { StageId, Opportunity } from '@/types'
@@ -8,14 +8,27 @@ import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import { OpportunityModal } from '@/components/kanban/OpportunityModal'
 import { useSearchParams } from 'react-router-dom'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export default function Opportunities() {
   const { opportunities, moveOpportunity, products } = useMainStore()
   const { toast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedOppId, setSelectedOppId] = useState<string | null>(null)
+  const [selectedProductId, setSelectedProductId] = useState<string>('ALL')
 
   const isNewOpen = searchParams.get('new') === 'true'
+
+  const filteredOpportunities = useMemo(() => {
+    if (selectedProductId === 'ALL') return opportunities
+    return opportunities.filter((opp) => opp.productId === selectedProductId)
+  }, [opportunities, selectedProductId])
 
   const closeModals = () => {
     setSelectedOppId(null)
@@ -66,11 +79,30 @@ export default function Opportunities() {
     }).format(val)
 
   return (
-    <div className="h-full flex flex-col animate-fade-in">
+    <div className="h-full flex flex-col animate-fade-in space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
+        <h2 className="text-2xl font-bold tracking-tight">Pipeline de Oportunidades</h2>
+        <div className="w-full sm:w-64">
+          <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filtrar por Produto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos os Produtos</SelectItem>
+              {products.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
         {STAGE_ORDER.map((stageId) => {
           const stage = STAGES[stageId]
-          const stageOpps = opportunities.filter((o) => o.stageId === stageId)
+          const stageOpps = filteredOpportunities.filter((o) => o.stageId === stageId)
 
           return (
             <div

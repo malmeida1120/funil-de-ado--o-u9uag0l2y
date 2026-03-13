@@ -26,7 +26,7 @@ export default function FunnelChart({ opportunities }: FunnelChartProps) {
     }).format(val)
 
   return (
-    <div className="flex flex-col gap-2 w-full max-w-2xl mx-auto py-8">
+    <div className="flex flex-col gap-2 w-full max-w-2xl mx-auto py-4">
       {STAGE_ORDER.map((stageId, index) => {
         const data = stageData[stageId]
         const stage = STAGES[stageId]
