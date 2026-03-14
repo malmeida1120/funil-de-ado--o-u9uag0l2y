@@ -40,7 +40,7 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex justify-between items-start gap-2">
-          <span className="font-semibold text-slate-900 leading-tight">{opp.clientName}</span>
+          <span className="font-semibold text-slate-900 leading-tight">{opp.title}</span>
           {opp.status === 'WON' && (
             <Badge className="bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0">
               Ganha

@@ -53,7 +53,7 @@ export function exportOpportunities(opportunities: Opportunity[], products: Prod
     const product = products.find((p) => p.id === opp.productId)?.name || 'Sem Produto'
     const stage = STAGES[opp.stageId]
     const row = [
-      `"${opp.clientName.replace(/"/g, '""')}"`,
+      `"${opp.title.replace(/"/g, '""')}"`,
       `"${product.replace(/"/g, '""')}"`,
       stage.label,
       opp.qualitativeWin.toString(),

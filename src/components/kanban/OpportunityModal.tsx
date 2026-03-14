@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -33,7 +34,8 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
   const { opportunities, products, addOpportunity, updateOpportunity } = useMainStore()
 
   const [formData, setFormData] = useState<Partial<Opportunity>>({
-    clientName: '',
+    title: '',
+    description: '',
     productId: '',
     stageId: 'LEAD',
     potentialValue: 0,
@@ -49,7 +51,8 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
       if (opp) setFormData(opp)
     } else if (!opportunityId && isOpen) {
       setFormData({
-        clientName: '',
+        title: '',
+        description: '',
         productId: '',
         stageId: 'LEAD',
         potentialValue: 0,
@@ -69,7 +72,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
   const checklist = STAGE_CHECKLISTS[currentStageId] || []
 
   const handleSave = () => {
-    if (!formData.clientName || !formData.productId) return // Basic validation
+    if (!formData.title || !formData.productId) return
 
     if (opportunityId) {
       updateOpportunity(opportunityId, formData)
@@ -104,10 +107,10 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
 
         <div className="grid grid-cols-2 gap-4 py-4">
           <div className="space-y-2 col-span-2 md:col-span-1">
-            <Label>Instituição / Cliente</Label>
+            <Label>Título (Instituição / Cliente)</Label>
             <Input
-              value={formData.clientName}
-              onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Ex: Hospital das Clínicas"
             />
           </div>
@@ -128,6 +131,16 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2 col-span-2">
+            <Label>Descrição</Label>
+            <Textarea
+              value={formData.description || ''}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Detalhes adicionais sobre a oportunidade..."
+              rows={2}
+            />
           </div>
 
           <div className="space-y-2">

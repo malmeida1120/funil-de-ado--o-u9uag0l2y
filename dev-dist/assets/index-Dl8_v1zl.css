@@ -714,6 +714,9 @@ section[aria-label='Notifications alt+T'] {
 .mb-1{
   margin-bottom: 0.25rem;
 }
+.mb-2{
+  margin-bottom: 0.5rem;
+}
 .mb-4{
   margin-bottom: 1rem;
 }
@@ -749,6 +752,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .mt-4{
   margin-top: 1rem;
+}
+.mt-6{
+  margin-top: 1.5rem;
 }
 .mt-auto{
   margin-top: auto;
@@ -853,6 +859,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .h-px{
   height: 1px;
+}
+.h-screen{
+  height: 100vh;
 }
 .h-svh{
   height: 100svh;
@@ -1672,6 +1681,10 @@ section[aria-label='Notifications alt+T'] {
 .text-2xl{
   font-size: 1.5rem;
   line-height: 2rem;
+}
+.text-3xl{
+  font-size: 1.875rem;
+  line-height: 2.25rem;
 }
 .text-4xl{
   font-size: 2.25rem;

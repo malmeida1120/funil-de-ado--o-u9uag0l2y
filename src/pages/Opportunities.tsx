@@ -30,14 +30,14 @@ export default function Opportunities() {
   const isNewOpen = searchParams.get('new') === 'true'
 
   const uniqueClients = useMemo(() => {
-    const clients = new Set(opportunities.map((o) => o.clientName))
+    const clients = new Set(opportunities.map((o) => o.title))
     return Array.from(clients).sort()
   }, [opportunities])
 
   const filteredOpportunities = useMemo(() => {
     return opportunities.filter((opp) => {
       const matchProduct = selectedProductId === 'ALL' || opp.productId === selectedProductId
-      const matchClient = selectedClients.length === 0 || selectedClients.includes(opp.clientName)
+      const matchClient = selectedClients.length === 0 || selectedClients.includes(opp.title)
       return matchProduct && matchClient
     })
   }, [opportunities, selectedProductId, selectedClients])

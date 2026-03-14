@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { Opportunity, Product, StageId } from '@/types'
+import { supabase } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/use-auth'
 
 interface MainState {
   opportunities: Opportunity[]
@@ -12,81 +14,95 @@ interface MainState {
   deleteProduct: (id: string) => void
 }
 
-const mockProducts: Product[] = [
-  { id: 'p1', name: 'Zomacton', therapeuticLine: 'Gastroenterologia' },
-  { id: 'p2', name: 'Firmagon', therapeuticLine: 'Endocrinologia' },
-  { id: 'p3', name: 'Tractocile', therapeuticLine: 'Saúde Materna' },
-]
-
-const mockOpportunities: Opportunity[] = [
-  {
-    id: 'o1',
-    clientName: 'Hospital Sírio-Libanês',
-    productId: 'p1',
-    stageId: 'QUALIFICAR',
-    potentialValue: 150000,
-    estimatedDate: '2026-08',
-    qualitativeWin: 40,
-    completedActivities: [
-      'Registrar lead no CRM com dados mínimos',
-      'Identificar origem e validar necessidade potencial',
-      'Enriquecer dados básicos da instituição (tipo, porte, comitês, histórico)',
-    ],
-    status: 'ACTIVE',
-    createdAt: new Date(Date.now() - 100000000).toISOString(),
-    updatedAt: new Date(Date.now() - 50000000).toISOString(),
-  },
-  {
-    id: 'o2',
-    clientName: 'Albert Einstein',
-    productId: 'p3',
-    stageId: 'AVALIAR',
-    potentialValue: 300000,
-    estimatedDate: '2026-05',
-    qualitativeWin: 80,
-    completedActivities: [],
-    status: 'WON',
-    createdAt: new Date(Date.now() - 200000000).toISOString(),
-    updatedAt: new Date(Date.now() - 10000000).toISOString(),
-  },
-  {
-    id: 'o3',
-    clientName: "Rede D'Or",
-    productId: 'p2',
-    stageId: 'LEAD',
-    potentialValue: 50000,
-    estimatedDate: '2026-11',
-    qualitativeWin: 20,
-    completedActivities: [],
-    status: 'LOST',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-]
-
 const MainContext = createContext<MainState | undefined>(undefined)
 
-export function MainProvider({ children }: { children: ReactNode }) {
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(mockOpportunities)
-  const [products, setProducts] = useState<Product[]>(mockProducts)
+const mapOpp = (d: any): Opportunity => ({
+  id: d.id,
+  title: d.title,
+  description: d.description || '',
+  productId: d.product_id,
+  stageId: d.stage_id,
+  potentialValue: Number(d.potential_value),
+  estimatedDate: d.estimated_date,
+  qualitativeWin: d.qualitative_win,
+  completedActivities: d.completed_activities || [],
+  status: d.status,
+  createdAt: d.created_at,
+  updatedAt: d.updated_at,
+})
 
-  const addOpportunity = (opp: Omit<Opportunity, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newOpp: Opportunity = {
-      ...opp,
-      status: opp.status || 'ACTIVE',
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+const unmapOpp = (o: Partial<Opportunity>, uid: string) => {
+  const d: any = { user_id: uid }
+  if (o.title !== undefined) d.title = o.title
+  if (o.description !== undefined) d.description = o.description
+  if (o.productId !== undefined) d.product_id = o.productId
+  if (o.stageId !== undefined) d.stage_id = o.stageId
+  if (o.potentialValue !== undefined) d.potential_value = o.potentialValue
+  if (o.estimatedDate !== undefined) d.estimated_date = o.estimatedDate
+  if (o.qualitativeWin !== undefined) d.qualitative_win = o.qualitativeWin
+  if (o.completedActivities !== undefined) d.completed_activities = o.completedActivities
+  if (o.status !== undefined) d.status = o.status
+  return d
+}
+
+export function MainProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+
+  useEffect(() => {
+    if (!user) {
+      setOpportunities([])
+      setProducts([])
+      return
     }
-    setOpportunities((prev) => [...prev, newOpp])
+
+    const fetchData = async () => {
+      const [prodsRes, oppsRes] = await Promise.all([
+        supabase.from('products').select('*'),
+        supabase.from('opportunities').select('*'),
+      ])
+
+      if (prodsRes.data) {
+        setProducts(
+          prodsRes.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            therapeuticLine: p.therapeutic_line,
+          })),
+        )
+      }
+      if (oppsRes.data) setOpportunities(oppsRes.data.map(mapOpp))
+    }
+    fetchData()
+  }, [user])
+
+  const addOpportunity = async (opp: Omit<Opportunity, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!user) return
+    const dbData = unmapOpp(opp, user.id)
+    dbData.status = opp.status || 'ACTIVE'
+    const { data } = await supabase.from('opportunities').insert(dbData).select().single()
+    if (data) setOpportunities((prev) => [...prev, mapOpp(data)])
   }
 
-  const updateOpportunity = (id: string, updates: Partial<Opportunity>) => {
+  const updateOpportunity = async (id: string, updates: Partial<Opportunity>) => {
+    if (!user) return
+    const dbData = unmapOpp(updates, user.id)
+
+    // Optimistic UI update
     setOpportunities((prev) =>
       prev.map((o) =>
         o.id === id ? { ...o, ...updates, updatedAt: new Date().toISOString() } : o,
       ),
     )
+
+    const { data } = await supabase
+      .from('opportunities')
+      .update(dbData)
+      .eq('id', id)
+      .select()
+      .single()
+    if (data) setOpportunities((prev) => prev.map((o) => (o.id === id ? mapOpp(data) : o)))
   }
 
   const moveOpportunity = (id: string, newStage: StageId) => {
@@ -94,16 +110,38 @@ export function MainProvider({ children }: { children: ReactNode }) {
     return true
   }
 
-  const addProduct = (product: Omit<Product, 'id'>) => {
-    setProducts((prev) => [...prev, { ...product, id: Math.random().toString(36).substr(2, 9) }])
+  const addProduct = async (product: Omit<Product, 'id'>) => {
+    if (!user) return
+    const { data } = await supabase
+      .from('products')
+      .insert({
+        name: product.name,
+        therapeutic_line: product.therapeuticLine,
+        user_id: user.id,
+      })
+      .select()
+      .single()
+    if (data)
+      setProducts((prev) => [
+        ...prev,
+        { id: data.id, name: data.name, therapeuticLine: data.therapeutic_line },
+      ])
   }
 
-  const updateProduct = (id: string, updates: Partial<Product>) => {
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
+    if (!user) return
+    const payload: any = {}
+    if (updates.name) payload.name = updates.name
+    if (updates.therapeuticLine) payload.therapeutic_line = updates.therapeuticLine
+
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)))
+    await supabase.from('products').update(payload).eq('id', id)
   }
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
+    if (!user) return
     setProducts((prev) => prev.filter((p) => p.id !== id))
+    await supabase.from('products').delete().eq('id', id)
   }
 
   return React.createElement(

@@ -1,5 +1,13 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { LayoutDashboard, KanbanSquare, Package, Settings, Search, Plus } from 'lucide-react'
+import {
+  LayoutDashboard,
+  KanbanSquare,
+  Package,
+  Settings,
+  Search,
+  Plus,
+  LogOut,
+} from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuth } from '@/hooks/use-auth'
 
 const menuItems = [
   { title: 'Dashboard Executivo', url: '/', icon: LayoutDashboard },
@@ -25,6 +34,7 @@ const menuItems = [
 
 export default function SidebarLayout() {
   const location = useLocation()
+  const { signOut, user } = useAuth()
 
   return (
     <SidebarProvider>
@@ -61,15 +71,23 @@ export default function SidebarLayout() {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <div className="mt-auto p-4 border-t border-slate-100 flex items-center gap-3">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src="https://img.usecurling.com/ppl/thumbnail?gender=female&seed=4" />
-              <AvatarFallback>AM</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium leading-none">Ana Silva</span>
-              <span className="text-xs text-muted-foreground mt-1">Acesso ao Mercado</span>
+          <div className="mt-auto p-4 border-t border-slate-100 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9">
+                <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || 'U'}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-sm font-medium leading-none truncate">
+                  {user?.email?.split('@')[0]}
+                </span>
+                <span className="text-xs text-muted-foreground mt-1 truncate">
+                  Acesso ao Mercado
+                </span>
+              </div>
             </div>
+            <Button variant="ghost" size="icon" onClick={signOut} title="Sair">
+              <LogOut className="h-4 w-4 text-slate-500" />
+            </Button>
           </div>
         </Sidebar>
 

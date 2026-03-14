@@ -16,7 +16,8 @@ export interface Product {
 
 export interface Opportunity {
   id: string
-  clientName: string
+  title: string
+  description?: string
   productId: string
   stageId: StageId
   potentialValue: number
