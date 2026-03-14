@@ -1,10 +1,24 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Clock } from 'lucide-react'
+import { Clock, Trash2 } from 'lucide-react'
 import { Opportunity, Product } from '@/types'
 import { STAGES, STAGE_CHECKLISTS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { useMainStore } from '@/stores/main'
+import { useToast } from '@/hooks/use-toast'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 interface OpportunityCardProps {
   opp: Opportunity
@@ -14,6 +28,9 @@ interface OpportunityCardProps {
 }
 
 export function OpportunityCard({ opp, product, onClick, onDragStart }: OpportunityCardProps) {
+  const { deleteOpportunity } = useMainStore()
+  const { toast } = useToast()
+
   const stage = STAGES[opp.stageId]
   const requiredActs = STAGE_CHECKLISTS[opp.stageId] || []
   const completedActs = (opp.completedActivities || []).filter((a) => requiredActs.includes(a))
@@ -26,6 +43,21 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
       currency: 'BRL',
       maximumFractionDigits: 0,
     }).format(val)
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const { error } = await deleteOpportunity(opp.id)
+    if (error) {
+      toast({
+        title: 'Failed to delete opportunity. Please try again.',
+        variant: 'destructive',
+      })
+    } else {
+      toast({
+        title: 'Opportunity deleted successfully',
+      })
+    }
+  }
 
   return (
     <Card
@@ -41,16 +73,44 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
       <CardContent className="p-4 space-y-3">
         <div className="flex justify-between items-start gap-2">
           <span className="font-semibold text-slate-900 leading-tight">{opp.title}</span>
-          {opp.status === 'WON' && (
-            <Badge className="bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0">
-              Ganha
-            </Badge>
-          )}
-          {opp.status === 'LOST' && (
-            <Badge variant="destructive" className="shrink-0 text-[10px] px-1.5 py-0">
-              Perdida
-            </Badge>
-          )}
+          <div className="flex items-center gap-1 shrink-0">
+            {opp.status === 'WON' && (
+              <Badge className="bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0">
+                Ganha
+              </Badge>
+            )}
+            {opp.status === 'LOST' && (
+              <Badge variant="destructive" className="shrink-0 text-[10px] px-1.5 py-0">
+                Perdida
+              </Badge>
+            )}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Opportunity</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this opportunity? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
         <div className="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded inline-block">
           {product?.name || 'Sem Produto'}

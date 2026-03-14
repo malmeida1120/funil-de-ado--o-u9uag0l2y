@@ -40374,6 +40374,14 @@ function MainProvider({ children }) {
 		updateOpportunity(id, { stageId: newStage });
 		return true;
 	};
+	const deleteOpportunity = async (id) => {
+		if (!user) return { error: "Not authenticated" };
+		const previous = [...opportunities];
+		setOpportunities((prev) => prev.filter((o) => o.id !== id));
+		const { error } = await supabase.from("opportunities").delete().eq("id", id);
+		if (error) setOpportunities(previous);
+		return { error };
+	};
 	const addProduct = async (product) => {
 		if (!user) return;
 		const { data } = await supabase.from("products").insert({
@@ -40409,6 +40417,7 @@ function MainProvider({ children }) {
 		addOpportunity,
 		updateOpportunity,
 		moveOpportunity,
+		deleteOpportunity,
 		addProduct,
 		updateProduct,
 		deleteProduct
@@ -43612,8 +43621,232 @@ var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => 
 }));
 Progress.displayName = Root$3.displayName;
 //#endregion
+//#region ../../cache/modules/funil-de-adocao-e704f/node_modules/.pnpm/@radix-ui+react-alert-dialog@1.1.15_@types+react-dom@19.2.3_@types+react@19.2.14__@type_d492cfbed6c88f7a3980b921a627d48d/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs
+var ROOT_NAME = "AlertDialog";
+var [createAlertDialogContext, createAlertDialogScope] = createContextScope$1(ROOT_NAME, [createDialogScope]);
+var useDialogScope = createDialogScope();
+var AlertDialog$1 = (props) => {
+	const { __scopeAlertDialog, ...alertDialogProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$6, {
+		...dialogScope,
+		...alertDialogProps,
+		modal: true
+	});
+};
+AlertDialog$1.displayName = ROOT_NAME;
+var TRIGGER_NAME$1 = "AlertDialogTrigger";
+var AlertDialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...triggerProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trigger$2, {
+		...dialogScope,
+		...triggerProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogTrigger$1.displayName = TRIGGER_NAME$1;
+var PORTAL_NAME = "AlertDialogPortal";
+var AlertDialogPortal$1 = (props) => {
+	const { __scopeAlertDialog, ...portalProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal$1, {
+		...dialogScope,
+		...portalProps
+	});
+};
+AlertDialogPortal$1.displayName = PORTAL_NAME;
+var OVERLAY_NAME = "AlertDialogOverlay";
+var AlertDialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...overlayProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
+		...dialogScope,
+		...overlayProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogOverlay$1.displayName = OVERLAY_NAME;
+var CONTENT_NAME$1 = "AlertDialogContent";
+var [AlertDialogContentProvider, useAlertDialogContentContext] = createAlertDialogContext(CONTENT_NAME$1);
+var Slottable = /* @__PURE__ */ createSlottable("AlertDialogContent");
+var AlertDialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, children, ...contentProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	const contentRef = import_react.useRef(null);
+	const composedRefs = useComposedRefs(forwardedRef, contentRef);
+	const cancelRef = import_react.useRef(null);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WarningProvider, {
+		contentName: CONTENT_NAME$1,
+		titleName: TITLE_NAME,
+		docsSlug: "alert-dialog",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogContentProvider, {
+			scope: __scopeAlertDialog,
+			cancelRef,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
+				role: "alertdialog",
+				...dialogScope,
+				...contentProps,
+				ref: composedRefs,
+				onOpenAutoFocus: composeEventHandlers(contentProps.onOpenAutoFocus, (event) => {
+					event.preventDefault();
+					cancelRef.current?.focus({ preventScroll: true });
+				}),
+				onPointerDownOutside: (event) => event.preventDefault(),
+				onInteractOutside: (event) => event.preventDefault(),
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionWarning, { contentRef })]
+			})
+		})
+	});
+});
+AlertDialogContent$1.displayName = CONTENT_NAME$1;
+var TITLE_NAME = "AlertDialogTitle";
+var AlertDialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...titleProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
+		...dialogScope,
+		...titleProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogTitle$1.displayName = TITLE_NAME;
+var DESCRIPTION_NAME = "AlertDialogDescription";
+var AlertDialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...descriptionProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
+		...dialogScope,
+		...descriptionProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogDescription$1.displayName = DESCRIPTION_NAME;
+var ACTION_NAME = "AlertDialogAction";
+var AlertDialogAction$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...actionProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Close, {
+		...dialogScope,
+		...actionProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogAction$1.displayName = ACTION_NAME;
+var CANCEL_NAME = "AlertDialogCancel";
+var AlertDialogCancel$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...cancelProps } = props;
+	const { cancelRef } = useAlertDialogContentContext(CANCEL_NAME, __scopeAlertDialog);
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	const ref = useComposedRefs(forwardedRef, cancelRef);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Close, {
+		...dialogScope,
+		...cancelProps,
+		ref
+	});
+});
+AlertDialogCancel$1.displayName = CANCEL_NAME;
+var DescriptionWarning = ({ contentRef }) => {
+	const MESSAGE = `\`${CONTENT_NAME$1}\` requires a description for the component to be accessible for screen reader users.
+
+You can add a description to the \`${CONTENT_NAME$1}\` by passing a \`${DESCRIPTION_NAME}\` component as a child, which also benefits sighted users by adding visible context to the dialog.
+
+Alternatively, you can use your own component as a description by assigning it an \`id\` and passing the same value to the \`aria-describedby\` prop in \`${CONTENT_NAME$1}\`. If the description is confusing or duplicative for sighted users, you can use the \`@radix-ui/react-visually-hidden\` primitive as a wrapper around your description component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/alert-dialog`;
+	import_react.useEffect(() => {
+		if (!document.getElementById(contentRef.current?.getAttribute("aria-describedby"))) console.warn(MESSAGE);
+	}, [MESSAGE, contentRef]);
+	return null;
+};
+var Root2$1 = AlertDialog$1;
+var Trigger2 = AlertDialogTrigger$1;
+var Portal2 = AlertDialogPortal$1;
+var Overlay2 = AlertDialogOverlay$1;
+var Content2 = AlertDialogContent$1;
+var Action = AlertDialogAction$1;
+var Cancel = AlertDialogCancel$1;
+var Title2 = AlertDialogTitle$1;
+var Description2 = AlertDialogDescription$1;
+//#endregion
+//#region src/components/ui/alert-dialog.tsx
+var AlertDialog = Root2$1;
+var AlertDialogTrigger = Trigger2;
+var AlertDialogPortal = Portal2;
+var AlertDialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay2, {
+	"data-uid": "src/components/ui/alert-dialog.tsx:18:3",
+	"data-prohibitions": "[editContent]",
+	className: cn$1("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+	...props,
+	ref
+}));
+AlertDialogOverlay.displayName = Overlay2.displayName;
+var AlertDialogContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogPortal, {
+	"data-uid": "src/components/ui/alert-dialog.tsx:33:3",
+	"data-prohibitions": "[editContent]",
+	children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogOverlay, {
+		"data-uid": "src/components/ui/alert-dialog.tsx:34:5",
+		"data-prohibitions": "[editContent]"
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2, {
+		"data-uid": "src/components/ui/alert-dialog.tsx:35:5",
+		"data-prohibitions": "[editContent]",
+		ref,
+		className: cn$1("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg", className),
+		...props
+	})]
+}));
+AlertDialogContent.displayName = Content2.displayName;
+var AlertDialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	"data-uid": "src/components/ui/alert-dialog.tsx:48:3",
+	"data-prohibitions": "[editContent]",
+	className: cn$1("flex flex-col space-y-2 text-center sm:text-left", className),
+	...props
+});
+AlertDialogHeader.displayName = "AlertDialogHeader";
+var AlertDialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	"data-uid": "src/components/ui/alert-dialog.tsx:53:3",
+	"data-prohibitions": "[editContent]",
+	className: cn$1("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+	...props
+});
+AlertDialogFooter.displayName = "AlertDialogFooter";
+var AlertDialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title2, {
+	"data-uid": "src/components/ui/alert-dialog.tsx:64:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("text-lg font-semibold", className),
+	...props
+}));
+AlertDialogTitle.displayName = Title2.displayName;
+var AlertDialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description2, {
+	"data-uid": "src/components/ui/alert-dialog.tsx:76:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("text-sm text-muted-foreground", className),
+	...props
+}));
+AlertDialogDescription.displayName = Description2.displayName;
+var AlertDialogAction = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Action, {
+	"data-uid": "src/components/ui/alert-dialog.tsx:88:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1(buttonVariants(), className),
+	...props
+}));
+AlertDialogAction.displayName = Action.displayName;
+var AlertDialogCancel = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Cancel, {
+	"data-uid": "src/components/ui/alert-dialog.tsx:96:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0", className),
+	...props
+}));
+AlertDialogCancel.displayName = Cancel.displayName;
+//#endregion
 //#region src/components/kanban/OpportunityCard.tsx
 function OpportunityCard({ opp, product, onClick, onDragStart }) {
+	const { deleteOpportunity } = useMainStore();
+	const { toast } = useToast();
 	const stage = STAGES[opp.stageId];
 	const requiredActs = STAGE_CHECKLISTS[opp.stageId] || [];
 	const completedActs = (opp.completedActivities || []).filter((a) => requiredActs.includes(a));
@@ -43624,80 +43857,147 @@ function OpportunityCard({ opp, product, onClick, onDragStart }) {
 		currency: "BRL",
 		maximumFractionDigits: 0
 	}).format(val);
+	const handleDelete = async (e) => {
+		e.stopPropagation();
+		const { error } = await deleteOpportunity(opp.id);
+		if (error) toast({
+			title: "Failed to delete opportunity. Please try again.",
+			variant: "destructive"
+		});
+		else toast({ title: "Opportunity deleted successfully" });
+	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-		"data-uid": "src/components/kanban/OpportunityCard.tsx:31:5",
+		"data-uid": "src/components/kanban/OpportunityCard.tsx:63:5",
 		"data-prohibitions": "[editContent]",
 		className: cn$1("cursor-pointer hover:shadow-md transition-shadow active:cursor-grabbing border-slate-200", opp.status === "WON" && "border-green-500 bg-green-50/50", opp.status === "LOST" && "border-red-500 bg-red-50/50"),
 		draggable: true,
 		onDragStart: (e) => onDragStart(e, opp.id),
 		onClick,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-			"data-uid": "src/components/kanban/OpportunityCard.tsx:41:7",
+			"data-uid": "src/components/kanban/OpportunityCard.tsx:73:7",
 			"data-prohibitions": "[editContent]",
 			className: "p-4 space-y-3",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:42:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:74:9",
 					"data-prohibitions": "[editContent]",
 					className: "flex justify-between items-start gap-2",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:43:11",
-							"data-prohibitions": "[editContent]",
-							className: "font-semibold text-slate-900 leading-tight",
-							children: opp.title
-						}),
-						opp.status === "WON" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:45:13",
-							"data-prohibitions": "[]",
-							className: "bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0",
-							children: "Ganha"
-						}),
-						opp.status === "LOST" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:50:13",
-							"data-prohibitions": "[]",
-							variant: "destructive",
-							className: "shrink-0 text-[10px] px-1.5 py-0",
-							children: "Perdida"
-						})
-					]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:75:11",
+						"data-prohibitions": "[editContent]",
+						className: "font-semibold text-slate-900 leading-tight",
+						children: opp.title
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:76:11",
+						"data-prohibitions": "[editContent]",
+						className: "flex items-center gap-1 shrink-0",
+						children: [
+							opp.status === "WON" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+								"data-uid": "src/components/kanban/OpportunityCard.tsx:78:15",
+								"data-prohibitions": "[]",
+								className: "bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0",
+								children: "Ganha"
+							}),
+							opp.status === "LOST" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+								"data-uid": "src/components/kanban/OpportunityCard.tsx:83:15",
+								"data-prohibitions": "[]",
+								variant: "destructive",
+								className: "shrink-0 text-[10px] px-1.5 py-0",
+								children: "Perdida"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialog, {
+								"data-uid": "src/components/kanban/OpportunityCard.tsx:87:13",
+								"data-prohibitions": "[]",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTrigger, {
+									"data-uid": "src/components/kanban/OpportunityCard.tsx:88:15",
+									"data-prohibitions": "[]",
+									asChild: true,
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+										"data-uid": "src/components/kanban/OpportunityCard.tsx:89:17",
+										"data-prohibitions": "[]",
+										variant: "ghost",
+										size: "icon",
+										className: "h-6 w-6 text-slate-400 hover:text-red-500 hover:bg-red-50",
+										onClick: (e) => e.stopPropagation(),
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, {
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:95:19",
+											"data-prohibitions": "[editContent]",
+											className: "h-3 w-3"
+										})
+									})
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogContent, {
+									"data-uid": "src/components/kanban/OpportunityCard.tsx:98:15",
+									"data-prohibitions": "[]",
+									onClick: (e) => e.stopPropagation(),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogHeader, {
+										"data-uid": "src/components/kanban/OpportunityCard.tsx:99:17",
+										"data-prohibitions": "[]",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTitle, {
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:100:19",
+											"data-prohibitions": "[]",
+											children: "Delete Opportunity"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogDescription, {
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:101:19",
+											"data-prohibitions": "[]",
+											children: "Are you sure you want to delete this opportunity? This action cannot be undone."
+										})]
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogFooter, {
+										"data-uid": "src/components/kanban/OpportunityCard.tsx:105:17",
+										"data-prohibitions": "[]",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogCancel, {
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:106:19",
+											"data-prohibitions": "[]",
+											onClick: (e) => e.stopPropagation(),
+											children: "Cancel"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogAction, {
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:107:19",
+											"data-prohibitions": "[]",
+											onClick: handleDelete,
+											className: "bg-red-500 hover:bg-red-600",
+											children: "Delete"
+										})]
+									})]
+								})]
+							})
+						]
+					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:55:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:115:9",
 					"data-prohibitions": "[editContent]",
 					className: "text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded inline-block",
 					children: product?.name || "Sem Produto"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:58:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:118:9",
 					"data-prohibitions": "[editContent]",
 					className: "flex justify-between items-end text-sm",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:59:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:119:11",
 						"data-prohibitions": "[editContent]",
 						className: "flex flex-col",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:60:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:120:13",
 							"data-prohibitions": "[]",
 							className: "text-slate-400 text-xs",
 							children: "Potencial"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:61:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:121:13",
 							"data-prohibitions": "[editContent]",
 							className: "font-medium text-slate-700",
 							children: formatCurrency(opp.potentialValue)
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:63:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:123:11",
 						"data-prohibitions": "[editContent]",
 						className: "flex flex-col items-end",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:64:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:124:13",
 							"data-prohibitions": "[]",
 							className: "text-slate-400 text-xs",
 							children: "Prob. Final"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:65:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:125:13",
 							"data-prohibitions": "[editContent]",
 							className: `font-bold ${finalWin > 60 ? "text-green-600" : finalWin > 30 ? "text-amber-500" : "text-red-500"}`,
 							children: [finalWin, "%"]
@@ -43705,19 +44005,19 @@ function OpportunityCard({ opp, product, onClick, onDragStart }) {
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:72:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:132:9",
 					"data-prohibitions": "[editContent]",
 					className: "space-y-1",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:73:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:133:11",
 						"data-prohibitions": "[editContent]",
 						className: "flex justify-between text-[10px] text-slate-500",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:74:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:134:13",
 							"data-prohibitions": "[]",
 							children: "Checklist da Fase"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:75:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:135:13",
 							"data-prohibitions": "[editContent]",
 							children: [
 								completedActs.length,
@@ -43726,22 +44026,22 @@ function OpportunityCard({ opp, product, onClick, onDragStart }) {
 							]
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:79:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:139:11",
 						"data-prohibitions": "[editContent]",
 						value: progress,
 						className: "h-1.5"
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:81:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:141:9",
 					"data-prohibitions": "[editContent]",
 					className: "flex items-center text-[10px] text-slate-400 mt-2 border-t pt-2 border-slate-100",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:82:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:142:11",
 						"data-prohibitions": "[editContent]",
 						className: "w-3 h-3 mr-1"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:83:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:143:11",
 						"data-prohibitions": "[editContent]",
 						children: ["Atualizado: ", new Date(opp.updatedAt).toLocaleDateString("pt-BR")]
 					})]
@@ -44011,226 +44311,6 @@ function Opportunities() {
 		]
 	});
 }
-//#endregion
-//#region ../../cache/modules/funil-de-adocao-e704f/node_modules/.pnpm/@radix-ui+react-alert-dialog@1.1.15_@types+react-dom@19.2.3_@types+react@19.2.14__@type_d492cfbed6c88f7a3980b921a627d48d/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs
-var ROOT_NAME = "AlertDialog";
-var [createAlertDialogContext, createAlertDialogScope] = createContextScope$1(ROOT_NAME, [createDialogScope]);
-var useDialogScope = createDialogScope();
-var AlertDialog$1 = (props) => {
-	const { __scopeAlertDialog, ...alertDialogProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$6, {
-		...dialogScope,
-		...alertDialogProps,
-		modal: true
-	});
-};
-AlertDialog$1.displayName = ROOT_NAME;
-var TRIGGER_NAME$1 = "AlertDialogTrigger";
-var AlertDialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...triggerProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trigger$2, {
-		...dialogScope,
-		...triggerProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogTrigger$1.displayName = TRIGGER_NAME$1;
-var PORTAL_NAME = "AlertDialogPortal";
-var AlertDialogPortal$1 = (props) => {
-	const { __scopeAlertDialog, ...portalProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal$1, {
-		...dialogScope,
-		...portalProps
-	});
-};
-AlertDialogPortal$1.displayName = PORTAL_NAME;
-var OVERLAY_NAME = "AlertDialogOverlay";
-var AlertDialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...overlayProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
-		...dialogScope,
-		...overlayProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogOverlay$1.displayName = OVERLAY_NAME;
-var CONTENT_NAME$1 = "AlertDialogContent";
-var [AlertDialogContentProvider, useAlertDialogContentContext] = createAlertDialogContext(CONTENT_NAME$1);
-var Slottable = /* @__PURE__ */ createSlottable("AlertDialogContent");
-var AlertDialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, children, ...contentProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	const contentRef = import_react.useRef(null);
-	const composedRefs = useComposedRefs(forwardedRef, contentRef);
-	const cancelRef = import_react.useRef(null);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WarningProvider, {
-		contentName: CONTENT_NAME$1,
-		titleName: TITLE_NAME,
-		docsSlug: "alert-dialog",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogContentProvider, {
-			scope: __scopeAlertDialog,
-			cancelRef,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
-				role: "alertdialog",
-				...dialogScope,
-				...contentProps,
-				ref: composedRefs,
-				onOpenAutoFocus: composeEventHandlers(contentProps.onOpenAutoFocus, (event) => {
-					event.preventDefault();
-					cancelRef.current?.focus({ preventScroll: true });
-				}),
-				onPointerDownOutside: (event) => event.preventDefault(),
-				onInteractOutside: (event) => event.preventDefault(),
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionWarning, { contentRef })]
-			})
-		})
-	});
-});
-AlertDialogContent$1.displayName = CONTENT_NAME$1;
-var TITLE_NAME = "AlertDialogTitle";
-var AlertDialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...titleProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
-		...dialogScope,
-		...titleProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogTitle$1.displayName = TITLE_NAME;
-var DESCRIPTION_NAME = "AlertDialogDescription";
-var AlertDialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...descriptionProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
-		...dialogScope,
-		...descriptionProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogDescription$1.displayName = DESCRIPTION_NAME;
-var ACTION_NAME = "AlertDialogAction";
-var AlertDialogAction$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...actionProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Close, {
-		...dialogScope,
-		...actionProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogAction$1.displayName = ACTION_NAME;
-var CANCEL_NAME = "AlertDialogCancel";
-var AlertDialogCancel$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...cancelProps } = props;
-	const { cancelRef } = useAlertDialogContentContext(CANCEL_NAME, __scopeAlertDialog);
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	const ref = useComposedRefs(forwardedRef, cancelRef);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Close, {
-		...dialogScope,
-		...cancelProps,
-		ref
-	});
-});
-AlertDialogCancel$1.displayName = CANCEL_NAME;
-var DescriptionWarning = ({ contentRef }) => {
-	const MESSAGE = `\`${CONTENT_NAME$1}\` requires a description for the component to be accessible for screen reader users.
-
-You can add a description to the \`${CONTENT_NAME$1}\` by passing a \`${DESCRIPTION_NAME}\` component as a child, which also benefits sighted users by adding visible context to the dialog.
-
-Alternatively, you can use your own component as a description by assigning it an \`id\` and passing the same value to the \`aria-describedby\` prop in \`${CONTENT_NAME$1}\`. If the description is confusing or duplicative for sighted users, you can use the \`@radix-ui/react-visually-hidden\` primitive as a wrapper around your description component.
-
-For more information, see https://radix-ui.com/primitives/docs/components/alert-dialog`;
-	import_react.useEffect(() => {
-		if (!document.getElementById(contentRef.current?.getAttribute("aria-describedby"))) console.warn(MESSAGE);
-	}, [MESSAGE, contentRef]);
-	return null;
-};
-var Root2$1 = AlertDialog$1;
-var Portal2 = AlertDialogPortal$1;
-var Overlay2 = AlertDialogOverlay$1;
-var Content2 = AlertDialogContent$1;
-var Action = AlertDialogAction$1;
-var Cancel = AlertDialogCancel$1;
-var Title2 = AlertDialogTitle$1;
-var Description2 = AlertDialogDescription$1;
-//#endregion
-//#region src/components/ui/alert-dialog.tsx
-var AlertDialog = Root2$1;
-var AlertDialogPortal = Portal2;
-var AlertDialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay2, {
-	"data-uid": "src/components/ui/alert-dialog.tsx:18:3",
-	"data-prohibitions": "[editContent]",
-	className: cn$1("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
-	...props,
-	ref
-}));
-AlertDialogOverlay.displayName = Overlay2.displayName;
-var AlertDialogContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogPortal, {
-	"data-uid": "src/components/ui/alert-dialog.tsx:33:3",
-	"data-prohibitions": "[editContent]",
-	children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogOverlay, {
-		"data-uid": "src/components/ui/alert-dialog.tsx:34:5",
-		"data-prohibitions": "[editContent]"
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2, {
-		"data-uid": "src/components/ui/alert-dialog.tsx:35:5",
-		"data-prohibitions": "[editContent]",
-		ref,
-		className: cn$1("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg", className),
-		...props
-	})]
-}));
-AlertDialogContent.displayName = Content2.displayName;
-var AlertDialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	"data-uid": "src/components/ui/alert-dialog.tsx:48:3",
-	"data-prohibitions": "[editContent]",
-	className: cn$1("flex flex-col space-y-2 text-center sm:text-left", className),
-	...props
-});
-AlertDialogHeader.displayName = "AlertDialogHeader";
-var AlertDialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	"data-uid": "src/components/ui/alert-dialog.tsx:53:3",
-	"data-prohibitions": "[editContent]",
-	className: cn$1("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
-	...props
-});
-AlertDialogFooter.displayName = "AlertDialogFooter";
-var AlertDialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title2, {
-	"data-uid": "src/components/ui/alert-dialog.tsx:64:3",
-	"data-prohibitions": "[editContent]",
-	ref,
-	className: cn$1("text-lg font-semibold", className),
-	...props
-}));
-AlertDialogTitle.displayName = Title2.displayName;
-var AlertDialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description2, {
-	"data-uid": "src/components/ui/alert-dialog.tsx:76:3",
-	"data-prohibitions": "[editContent]",
-	ref,
-	className: cn$1("text-sm text-muted-foreground", className),
-	...props
-}));
-AlertDialogDescription.displayName = Description2.displayName;
-var AlertDialogAction = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Action, {
-	"data-uid": "src/components/ui/alert-dialog.tsx:88:3",
-	"data-prohibitions": "[editContent]",
-	ref,
-	className: cn$1(buttonVariants(), className),
-	...props
-}));
-AlertDialogAction.displayName = Action.displayName;
-var AlertDialogCancel = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Cancel, {
-	"data-uid": "src/components/ui/alert-dialog.tsx:96:3",
-	"data-prohibitions": "[editContent]",
-	ref,
-	className: cn$1(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0", className),
-	...props
-}));
-AlertDialogCancel.displayName = Cancel.displayName;
 //#endregion
 //#region src/pages/Products.tsx
 function Products() {
@@ -46218,4 +46298,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-D-har6Zr.js.map
+//# sourceMappingURL=index-DkGV71oV.js.map

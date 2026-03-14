@@ -9,7 +9,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      opportunities: {
+        Row: {
+          completed_activities: Json
+          created_at: string
+          description: string | null
+          estimated_date: string | null
+          id: string
+          potential_value: number
+          product_id: string | null
+          qualitative_win: number
+          stage_id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_activities?: Json
+          created_at?: string
+          description?: string | null
+          estimated_date?: string | null
+          id?: string
+          potential_value?: number
+          product_id?: string | null
+          qualitative_win?: number
+          stage_id: string
+          status: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_activities?: Json
+          created_at?: string
+          description?: string | null
+          estimated_date?: string | null
+          id?: string
+          potential_value?: number
+          product_id?: string | null
+          qualitative_win?: number
+          stage_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'opportunities_product_id_fkey'
+            columns: ['product_id']
+            isOneToOne: false
+            referencedRelation: 'products'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      products: {
+        Row: {
+          id: string
+          name: string
+          therapeutic_line: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          therapeutic_line?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          therapeutic_line?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -153,3 +229,60 @@ export const Constants = {
 // IMPORTANT: The TypeScript types above map UUID, TEXT, VARCHAR all to "string".
 // Use the COLUMN TYPES section below to know the real PostgreSQL type for each column.
 // Always use the correct PostgreSQL type when writing SQL migrations.
+
+// --- COLUMN TYPES (actual PostgreSQL types) ---
+// Use this to know the real database type when writing migrations.
+// "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: opportunities
+//   id: uuid (not null, default: gen_random_uuid())
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
+//   title: text (not null)
+//   description: text (nullable)
+//   status: text (not null)
+//   user_id: uuid (not null)
+//   product_id: uuid (nullable)
+//   stage_id: text (not null)
+//   potential_value: numeric (not null, default: 0)
+//   estimated_date: text (nullable)
+//   qualitative_win: integer (not null, default: 0)
+//   completed_activities: jsonb (not null, default: '[]'::jsonb)
+// Table: products
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   therapeutic_line: text (nullable)
+//   user_id: uuid (not null)
+
+// --- CONSTRAINTS ---
+// Table: opportunities
+//   PRIMARY KEY opportunities_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY opportunities_product_id_fkey: FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+//   FOREIGN KEY opportunities_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: products
+//   PRIMARY KEY products_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY products_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+
+// --- ROW LEVEL SECURITY POLICIES ---
+// Table: opportunities
+//   Policy "Users can manage their own opportunities" (ALL, PERMISSIVE) roles={public}
+//     USING: (auth.uid() = user_id)
+// Table: products
+//   Policy "Users can manage their own products" (ALL, PERMISSIVE) roles={public}
+//     USING: (auth.uid() = user_id)
+
+// --- DATABASE FUNCTIONS ---
+// FUNCTION update_updated_at_column()
+//   CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//   AS $function$
+//   BEGIN
+//       NEW.updated_at = NOW();
+//       RETURN NEW;
+//   END;
+//   $function$
+//
+
+// --- TRIGGERS ---
+// Table: opportunities
+//   update_opportunities_updated_at: CREATE TRIGGER update_opportunities_updated_at BEFORE UPDATE ON public.opportunities FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()

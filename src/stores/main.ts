@@ -9,6 +9,7 @@ interface MainState {
   addOpportunity: (opp: Omit<Opportunity, 'id' | 'createdAt' | 'updatedAt'>) => void
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
   moveOpportunity: (id: string, newStage: StageId) => boolean
+  deleteOpportunity: (id: string) => Promise<{ error: any }>
   addProduct: (product: Omit<Product, 'id'>) => void
   updateProduct: (id: string, updates: Partial<Product>) => void
   deleteProduct: (id: string) => void
@@ -110,6 +111,15 @@ export function MainProvider({ children }: { children: ReactNode }) {
     return true
   }
 
+  const deleteOpportunity = async (id: string) => {
+    if (!user) return { error: 'Not authenticated' }
+    const previous = [...opportunities]
+    setOpportunities((prev) => prev.filter((o) => o.id !== id))
+    const { error } = await supabase.from('opportunities').delete().eq('id', id)
+    if (error) setOpportunities(previous)
+    return { error }
+  }
+
   const addProduct = async (product: Omit<Product, 'id'>) => {
     if (!user) return
     const { data } = await supabase
@@ -153,6 +163,7 @@ export function MainProvider({ children }: { children: ReactNode }) {
         addOpportunity,
         updateOpportunity,
         moveOpportunity,
+        deleteOpportunity,
         addProduct,
         updateProduct,
         deleteProduct,
