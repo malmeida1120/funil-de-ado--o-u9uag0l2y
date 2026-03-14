@@ -19092,15 +19092,6 @@ var ChevronsUpDown = createLucideIcon("chevrons-up-down", [["path", {
 	d: "m7 9 5-5 5 5",
 	key: "sgt6xg"
 }]]);
-var Clock = createLucideIcon("clock", [["circle", {
-	cx: "12",
-	cy: "12",
-	r: "10",
-	key: "1mglay"
-}], ["path", {
-	d: "M12 6v6l4 2",
-	key: "mmk7yg"
-}]]);
 var Download = createLucideIcon("download", [
 	["path", {
 		d: "M12 15V3",
@@ -40304,22 +40295,30 @@ var AuthProvider = ({ children }) => {
 //#endregion
 //#region src/stores/main.ts
 var MainContext = (0, import_react.createContext)(void 0);
-var mapOpp = (d) => ({
-	id: d.id,
-	title: d.title,
-	description: d.description || "",
-	productId: d.product_id,
-	stageId: d.stage_id,
-	potentialValue: Number(d.potential_value),
-	estimatedDate: d.estimated_date,
-	qualitativeWin: d.qualitative_win,
-	completedActivities: d.completed_activities || [],
-	status: d.status,
-	createdAt: d.created_at,
-	updatedAt: d.updated_at
-});
+var mapOpp = (d, profiles) => {
+	const creator = profiles.find((p) => p.id === d.user_id);
+	const updater = profiles.find((p) => p.id === (d.last_updated_by || d.user_id));
+	return {
+		id: d.id,
+		title: d.title,
+		description: d.description || "",
+		productId: d.product_id,
+		stageId: d.stage_id,
+		potentialValue: Number(d.potential_value),
+		estimatedDate: d.estimated_date,
+		qualitativeWin: d.qualitative_win,
+		completedActivities: d.completed_activities || [],
+		status: d.status,
+		createdAt: d.created_at,
+		updatedAt: d.updated_at,
+		userId: d.user_id,
+		lastUpdatedBy: d.last_updated_by || d.user_id,
+		creatorEmail: creator?.email || "Desconhecido",
+		updaterEmail: updater?.email || "Desconhecido"
+	};
+};
 var unmapOpp = (o, uid) => {
-	const d = { user_id: uid };
+	const d = {};
 	if (o.title !== void 0) d.title = o.title;
 	if (o.description !== void 0) d.description = o.description;
 	if (o.productId !== void 0) d.product_id = o.productId;
@@ -40335,40 +40334,58 @@ function MainProvider({ children }) {
 	const { user } = useAuth();
 	const [opportunities, setOpportunities] = (0, import_react.useState)([]);
 	const [products, setProducts] = (0, import_react.useState)([]);
+	const [profiles, setProfiles] = (0, import_react.useState)([]);
 	(0, import_react.useEffect)(() => {
 		if (!user) {
 			setOpportunities([]);
 			setProducts([]);
+			setProfiles([]);
 			return;
 		}
 		const fetchData = async () => {
-			const [prodsRes, oppsRes] = await Promise.all([supabase.from("products").select("*"), supabase.from("opportunities").select("*")]);
+			const [prodsRes, oppsRes, profilesRes] = await Promise.all([
+				supabase.from("products").select("*"),
+				supabase.from("opportunities").select("*"),
+				supabase.from("profiles").select("*")
+			]);
+			const currentProfiles = profilesRes.data || [];
+			setProfiles(currentProfiles);
 			if (prodsRes.data) setProducts(prodsRes.data.map((p) => ({
 				id: p.id,
 				name: p.name,
 				therapeuticLine: p.therapeutic_line
 			})));
-			if (oppsRes.data) setOpportunities(oppsRes.data.map(mapOpp));
+			if (oppsRes.data) setOpportunities(oppsRes.data.map((o) => mapOpp(o, currentProfiles)));
 		};
 		fetchData();
 	}, [user]);
 	const addOpportunity = async (opp) => {
 		if (!user) return;
 		const dbData = unmapOpp(opp, user.id);
+		dbData.user_id = user.id;
+		dbData.last_updated_by = user.id;
 		dbData.status = opp.status || "ACTIVE";
 		const { data } = await supabase.from("opportunities").insert(dbData).select().single();
-		if (data) setOpportunities((prev) => [...prev, mapOpp(data)]);
+		if (data) {
+			const mapped = mapOpp(data, profiles);
+			mapped.creatorEmail = user.email || mapped.creatorEmail;
+			mapped.updaterEmail = user.email || mapped.updaterEmail;
+			setOpportunities((prev) => [...prev, mapped]);
+		}
 	};
 	const updateOpportunity = async (id, updates) => {
 		if (!user) return;
 		const dbData = unmapOpp(updates, user.id);
+		dbData.last_updated_by = user.id;
 		setOpportunities((prev) => prev.map((o) => o.id === id ? {
 			...o,
 			...updates,
-			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+			updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+			updaterEmail: user.email || o.updaterEmail,
+			lastUpdatedBy: user.id
 		} : o));
 		const { data } = await supabase.from("opportunities").update(dbData).eq("id", id).select().single();
-		if (data) setOpportunities((prev) => prev.map((o) => o.id === id ? mapOpp(data) : o));
+		if (data) setOpportunities((prev) => prev.map((o) => o.id === id ? mapOpp(data, profiles) : o));
 	};
 	const moveOpportunity = (id, newStage) => {
 		updateOpportunity(id, { stageId: newStage });
@@ -43131,29 +43148,42 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 			completedActivities: [...current, activity]
 		});
 	};
+	const formatDateTime = (isoString) => {
+		try {
+			return new Date(isoString).toLocaleString("pt-BR", {
+				day: "2-digit",
+				month: "2-digit",
+				year: "numeric",
+				hour: "2-digit",
+				minute: "2-digit"
+			});
+		} catch {
+			return "";
+		}
+	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		"data-uid": "src/components/kanban/OpportunityModal.tsx:95:5",
+		"data-uid": "src/components/kanban/OpportunityModal.tsx:109:5",
 		"data-prohibitions": "[editContent]",
 		open: isOpen,
 		onOpenChange: (open) => !open && onClose(),
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			"data-uid": "src/components/kanban/OpportunityModal.tsx:96:7",
+			"data-uid": "src/components/kanban/OpportunityModal.tsx:110:7",
 			"data-prohibitions": "[editContent]",
 			className: "max-w-2xl max-h-[90vh] overflow-y-auto",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, {
-					"data-uid": "src/components/kanban/OpportunityModal.tsx:97:9",
+					"data-uid": "src/components/kanban/OpportunityModal.tsx:111:9",
 					"data-prohibitions": "[editContent]",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/kanban/OpportunityModal.tsx:98:11",
+						"data-uid": "src/components/kanban/OpportunityModal.tsx:112:11",
 						"data-prohibitions": "[editContent]",
 						className: "flex items-center justify-between pr-8",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:99:13",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:113:13",
 							"data-prohibitions": "[editContent]",
 							children: opportunityId ? "Editar Oportunidade" : "Nova Oportunidade"
 						}), stageInfo && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:101:15",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:115:15",
 							"data-prohibitions": "[editContent]",
 							style: { backgroundColor: stageInfo.hexColor },
 							className: "text-white",
@@ -43167,20 +43197,20 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityModal.tsx:108:9",
+					"data-uid": "src/components/kanban/OpportunityModal.tsx:122:9",
 					"data-prohibitions": "[editContent]",
 					className: "grid grid-cols-2 gap-4 py-4",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:109:11",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:123:11",
 							"data-prohibitions": "[]",
 							className: "space-y-2 col-span-2 md:col-span-1",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:110:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:124:13",
 								"data-prohibitions": "[]",
 								children: "Título (Instituição / Cliente)"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:111:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:125:13",
 								"data-prohibitions": "[editContent]",
 								value: formData.title,
 								onChange: (e) => setFormData({
@@ -43191,15 +43221,15 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:117:11",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:131:11",
 							"data-prohibitions": "[editContent]",
 							className: "space-y-2 col-span-2 md:col-span-1",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:118:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:132:13",
 								"data-prohibitions": "[]",
 								children: "Produto"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:119:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:133:13",
 								"data-prohibitions": "[editContent]",
 								value: formData.productId,
 								onValueChange: (v) => setFormData({
@@ -43207,18 +43237,18 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 									productId: v
 								}),
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:123:15",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:137:15",
 									"data-prohibitions": "[]",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:124:17",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:138:17",
 										"data-prohibitions": "[editContent]",
 										placeholder: "Selecione..."
 									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:126:15",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:140:15",
 									"data-prohibitions": "[editContent]",
 									children: products.map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:128:19",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:142:19",
 										"data-prohibitions": "[editContent]",
 										value: p.id,
 										children: p.name
@@ -43227,15 +43257,15 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:136:11",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:150:11",
 							"data-prohibitions": "[]",
 							className: "space-y-2 col-span-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:137:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:151:13",
 								"data-prohibitions": "[]",
 								children: "Descrição"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Textarea, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:138:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:152:13",
 								"data-prohibitions": "[editContent]",
 								value: formData.description || "",
 								onChange: (e) => setFormData({
@@ -43247,15 +43277,15 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:146:11",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:160:11",
 							"data-prohibitions": "[]",
 							className: "space-y-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:147:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:161:13",
 								"data-prohibitions": "[]",
 								children: "Potencial Estimado (R$)"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:148:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:162:13",
 								"data-prohibitions": "[editContent]",
 								type: "number",
 								value: formData.potentialValue || "",
@@ -43266,15 +43296,15 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:154:11",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:168:11",
 							"data-prohibitions": "[]",
 							className: "space-y-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:155:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:169:13",
 								"data-prohibitions": "[]",
 								children: "Previsão de Implementação (Mês/Ano)"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:156:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:170:13",
 								"data-prohibitions": "[editContent]",
 								type: "month",
 								value: formData.estimatedDate,
@@ -43285,15 +43315,15 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:163:11",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:177:11",
 							"data-prohibitions": "[]",
 							className: "space-y-2 col-span-2 md:col-span-1",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:164:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:178:13",
 								"data-prohibitions": "[]",
 								children: "Status da Oportunidade"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:165:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:179:13",
 								"data-prohibitions": "[]",
 								value: formData.status || "ACTIVE",
 								onValueChange: (v) => setFormData({
@@ -43301,31 +43331,31 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 									status: v
 								}),
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:169:15",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:183:15",
 									"data-prohibitions": "[]",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:170:17",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:184:17",
 										"data-prohibitions": "[editContent]",
 										placeholder: "Selecione..."
 									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:172:15",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:186:15",
 									"data-prohibitions": "[]",
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/components/kanban/OpportunityModal.tsx:173:17",
+											"data-uid": "src/components/kanban/OpportunityModal.tsx:187:17",
 											"data-prohibitions": "[]",
 											value: "ACTIVE",
 											children: "Em Andamento"
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/components/kanban/OpportunityModal.tsx:174:17",
+											"data-uid": "src/components/kanban/OpportunityModal.tsx:188:17",
 											"data-prohibitions": "[]",
 											value: "WON",
 											children: "Encerrada - Ganha"
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/components/kanban/OpportunityModal.tsx:175:17",
+											"data-uid": "src/components/kanban/OpportunityModal.tsx:189:17",
 											"data-prohibitions": "[]",
 											value: "LOST",
 											children: "Encerrada - Perdida"
@@ -43335,27 +43365,27 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:180:11",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:194:11",
 							"data-prohibitions": "[editContent]",
 							className: "space-y-4 col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-100 mt-2",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:181:13",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:195:13",
 									"data-prohibitions": "[editContent]",
 									className: "flex justify-between items-center",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:182:15",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:196:15",
 										"data-prohibitions": "[]",
 										children: "Probabilidade Qualitativa (Seu feeling)"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:183:15",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:197:15",
 										"data-prohibitions": "[editContent]",
 										className: "font-bold text-primary",
 										children: [formData.qualitativeWin, "%"]
 									})]
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slider, {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:185:13",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:199:13",
 									"data-prohibitions": "[editContent]",
 									value: [formData.qualitativeWin || 0],
 									onValueChange: (v) => setFormData({
@@ -43366,22 +43396,22 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 									step: 5
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:191:13",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:205:13",
 									"data-prohibitions": "[editContent]",
 									className: "flex justify-between text-sm text-slate-500 pt-2 border-t border-slate-200",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:192:15",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:206:15",
 										"data-prohibitions": "[editContent]",
 										children: ["Sistema (Fase): ", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", {
-											"data-uid": "src/components/kanban/OpportunityModal.tsx:193:33",
+											"data-uid": "src/components/kanban/OpportunityModal.tsx:207:33",
 											"data-prohibitions": "[editContent]",
 											children: [stageInfo?.winPercentage, "%"]
 										})]
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:195:15",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:209:15",
 										"data-prohibitions": "[editContent]",
 										children: ["Prob. Final Calculada: ", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", {
-											"data-uid": "src/components/kanban/OpportunityModal.tsx:196:40",
+											"data-uid": "src/components/kanban/OpportunityModal.tsx:210:40",
 											"data-prohibitions": "[editContent]",
 											className: "text-slate-800",
 											children: [finalWin, "%"]
@@ -43391,37 +43421,37 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 							]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:201:11",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:215:11",
 							"data-prohibitions": "[editContent]",
 							className: "col-span-2 space-y-3 pt-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label, {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:202:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:216:13",
 								"data-prohibitions": "[editContent]",
 								className: "text-base text-primary font-semibold border-b pb-1 border-slate-100 flex w-full",
 								children: ["Atividades Chave - Fase: ", stageInfo?.label]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/components/kanban/OpportunityModal.tsx:205:13",
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:219:13",
 								"data-prohibitions": "[editContent]",
 								className: "space-y-2 max-h-48 overflow-y-auto pr-2",
 								children: [checklist.map((activity, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:207:17",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:221:17",
 									"data-prohibitions": "[editContent]",
 									className: "flex items-start space-x-2",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Checkbox, {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:208:19",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:222:19",
 										"data-prohibitions": "[editContent]",
 										id: `act-${idx}`,
 										checked: (formData.completedActivities || []).includes(activity),
 										onCheckedChange: () => toggleActivity(activity)
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-										"data-uid": "src/components/kanban/OpportunityModal.tsx:213:19",
+										"data-uid": "src/components/kanban/OpportunityModal.tsx:227:19",
 										"data-prohibitions": "[editContent]",
 										htmlFor: `act-${idx}`,
 										className: "text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-medium text-slate-700",
 										children: activity
 									})]
 								}, idx)), checklist.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									"data-uid": "src/components/kanban/OpportunityModal.tsx:222:17",
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:236:17",
 									"data-prohibitions": "[]",
 									className: "text-sm text-muted-foreground",
 									children: "Nenhuma atividade mapeada para esta fase."
@@ -43429,34 +43459,68 @@ function OpportunityModal({ isOpen, onClose, opportunityId }) {
 							})]
 						}),
 						opportunityId && formData.updatedAt && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/kanban/OpportunityModal.tsx:230:13",
+							"data-uid": "src/components/kanban/OpportunityModal.tsx:244:13",
 							"data-prohibitions": "[editContent]",
-							className: "col-span-2 text-xs text-slate-500 text-right mt-2",
-							children: [
-								"Data da última atualização: ",
-								new Date(formData.updatedAt).toLocaleDateString("pt-BR"),
-								" ",
-								"às",
-								" ",
-								new Date(formData.updatedAt).toLocaleTimeString("pt-BR", {
-									hour: "2-digit",
-									minute: "2-digit"
-								})
-							]
+							className: "col-span-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mt-4 space-y-1.5",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:245:15",
+								"data-prohibitions": "[editContent]",
+								className: "flex justify-between items-center",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:246:17",
+									"data-prohibitions": "[editContent]",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+											"data-uid": "src/components/kanban/OpportunityModal.tsx:247:19",
+											"data-prohibitions": "[]",
+											children: "Criado por:"
+										}),
+										" ",
+										formData.creatorEmail
+									]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:249:17",
+									"data-prohibitions": "[editContent]",
+									className: "text-slate-400",
+									children: formData.createdAt ? formatDateTime(formData.createdAt) : ""
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/components/kanban/OpportunityModal.tsx:253:15",
+								"data-prohibitions": "[editContent]",
+								className: "flex justify-between items-center",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:254:17",
+									"data-prohibitions": "[editContent]",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+											"data-uid": "src/components/kanban/OpportunityModal.tsx:255:19",
+											"data-prohibitions": "[]",
+											children: "Última atualização por:"
+										}),
+										" ",
+										formData.updaterEmail
+									]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									"data-uid": "src/components/kanban/OpportunityModal.tsx:257:17",
+									"data-prohibitions": "[editContent]",
+									className: "text-slate-400",
+									children: formatDateTime(formData.updatedAt)
+								})]
+							})]
 						})
 					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
-					"data-uid": "src/components/kanban/OpportunityModal.tsx:241:9",
+					"data-uid": "src/components/kanban/OpportunityModal.tsx:263:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/components/kanban/OpportunityModal.tsx:242:11",
+						"data-uid": "src/components/kanban/OpportunityModal.tsx:264:11",
 						"data-prohibitions": "[]",
 						variant: "outline",
 						onClick: onClose,
 						children: "Cancelar"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/components/kanban/OpportunityModal.tsx:245:11",
+						"data-uid": "src/components/kanban/OpportunityModal.tsx:267:11",
 						"data-prohibitions": "[]",
 						onClick: handleSave,
 						children: "Salvar Oportunidade"
@@ -43857,6 +43921,19 @@ function OpportunityCard({ opp, product, onClick, onDragStart }) {
 		currency: "BRL",
 		maximumFractionDigits: 0
 	}).format(val);
+	const formatDateTime = (isoString) => {
+		try {
+			return new Date(isoString).toLocaleString("pt-BR", {
+				day: "2-digit",
+				month: "2-digit",
+				year: "numeric",
+				hour: "2-digit",
+				minute: "2-digit"
+			});
+		} catch {
+			return "";
+		}
+	};
 	const handleDelete = async (e) => {
 		e.stopPropagation();
 		const { error } = await deleteOpportunity(opp.id);
@@ -43867,94 +43944,94 @@ function OpportunityCard({ opp, product, onClick, onDragStart }) {
 		else toast({ title: "Opportunity deleted successfully" });
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-		"data-uid": "src/components/kanban/OpportunityCard.tsx:63:5",
+		"data-uid": "src/components/kanban/OpportunityCard.tsx:77:5",
 		"data-prohibitions": "[editContent]",
 		className: cn$1("cursor-pointer hover:shadow-md transition-shadow active:cursor-grabbing border-slate-200", opp.status === "WON" && "border-green-500 bg-green-50/50", opp.status === "LOST" && "border-red-500 bg-red-50/50"),
 		draggable: true,
 		onDragStart: (e) => onDragStart(e, opp.id),
 		onClick,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-			"data-uid": "src/components/kanban/OpportunityCard.tsx:73:7",
+			"data-uid": "src/components/kanban/OpportunityCard.tsx:87:7",
 			"data-prohibitions": "[editContent]",
 			className: "p-4 space-y-3",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:74:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:88:9",
 					"data-prohibitions": "[editContent]",
 					className: "flex justify-between items-start gap-2",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:75:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:89:11",
 						"data-prohibitions": "[editContent]",
 						className: "font-semibold text-slate-900 leading-tight",
 						children: opp.title
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:76:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:90:11",
 						"data-prohibitions": "[editContent]",
 						className: "flex items-center gap-1 shrink-0",
 						children: [
 							opp.status === "WON" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-								"data-uid": "src/components/kanban/OpportunityCard.tsx:78:15",
+								"data-uid": "src/components/kanban/OpportunityCard.tsx:92:15",
 								"data-prohibitions": "[]",
 								className: "bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0",
 								children: "Ganha"
 							}),
 							opp.status === "LOST" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-								"data-uid": "src/components/kanban/OpportunityCard.tsx:83:15",
+								"data-uid": "src/components/kanban/OpportunityCard.tsx:97:15",
 								"data-prohibitions": "[]",
 								variant: "destructive",
 								className: "shrink-0 text-[10px] px-1.5 py-0",
 								children: "Perdida"
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialog, {
-								"data-uid": "src/components/kanban/OpportunityCard.tsx:87:13",
+								"data-uid": "src/components/kanban/OpportunityCard.tsx:101:13",
 								"data-prohibitions": "[]",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTrigger, {
-									"data-uid": "src/components/kanban/OpportunityCard.tsx:88:15",
+									"data-uid": "src/components/kanban/OpportunityCard.tsx:102:15",
 									"data-prohibitions": "[]",
 									asChild: true,
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-										"data-uid": "src/components/kanban/OpportunityCard.tsx:89:17",
+										"data-uid": "src/components/kanban/OpportunityCard.tsx:103:17",
 										"data-prohibitions": "[]",
 										variant: "ghost",
 										size: "icon",
 										className: "h-6 w-6 text-slate-400 hover:text-red-500 hover:bg-red-50",
 										onClick: (e) => e.stopPropagation(),
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, {
-											"data-uid": "src/components/kanban/OpportunityCard.tsx:95:19",
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:109:19",
 											"data-prohibitions": "[editContent]",
 											className: "h-3 w-3"
 										})
 									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogContent, {
-									"data-uid": "src/components/kanban/OpportunityCard.tsx:98:15",
+									"data-uid": "src/components/kanban/OpportunityCard.tsx:112:15",
 									"data-prohibitions": "[]",
 									onClick: (e) => e.stopPropagation(),
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogHeader, {
-										"data-uid": "src/components/kanban/OpportunityCard.tsx:99:17",
+										"data-uid": "src/components/kanban/OpportunityCard.tsx:113:17",
 										"data-prohibitions": "[]",
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTitle, {
-											"data-uid": "src/components/kanban/OpportunityCard.tsx:100:19",
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:114:19",
 											"data-prohibitions": "[]",
-											children: "Delete Opportunity"
+											children: "Excluir Oportunidade"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogDescription, {
-											"data-uid": "src/components/kanban/OpportunityCard.tsx:101:19",
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:115:19",
 											"data-prohibitions": "[]",
-											children: "Are you sure you want to delete this opportunity? This action cannot be undone."
+											children: "Tem certeza de que deseja excluir esta oportunidade? Esta ação não pode ser desfeita."
 										})]
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogFooter, {
-										"data-uid": "src/components/kanban/OpportunityCard.tsx:105:17",
+										"data-uid": "src/components/kanban/OpportunityCard.tsx:120:17",
 										"data-prohibitions": "[]",
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogCancel, {
-											"data-uid": "src/components/kanban/OpportunityCard.tsx:106:19",
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:121:19",
 											"data-prohibitions": "[]",
 											onClick: (e) => e.stopPropagation(),
-											children: "Cancel"
+											children: "Cancelar"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogAction, {
-											"data-uid": "src/components/kanban/OpportunityCard.tsx:107:19",
+											"data-uid": "src/components/kanban/OpportunityCard.tsx:124:19",
 											"data-prohibitions": "[]",
 											onClick: handleDelete,
 											className: "bg-red-500 hover:bg-red-600",
-											children: "Delete"
+											children: "Excluir"
 										})]
 									})]
 								})]
@@ -43963,41 +44040,41 @@ function OpportunityCard({ opp, product, onClick, onDragStart }) {
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:115:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:132:9",
 					"data-prohibitions": "[editContent]",
 					className: "text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded inline-block",
 					children: product?.name || "Sem Produto"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:118:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:135:9",
 					"data-prohibitions": "[editContent]",
 					className: "flex justify-between items-end text-sm",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:119:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:136:11",
 						"data-prohibitions": "[editContent]",
 						className: "flex flex-col",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:120:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:137:13",
 							"data-prohibitions": "[]",
 							className: "text-slate-400 text-xs",
 							children: "Potencial"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:121:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:138:13",
 							"data-prohibitions": "[editContent]",
 							className: "font-medium text-slate-700",
 							children: formatCurrency(opp.potentialValue)
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:123:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:140:11",
 						"data-prohibitions": "[editContent]",
 						className: "flex flex-col items-end",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:124:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:141:13",
 							"data-prohibitions": "[]",
 							className: "text-slate-400 text-xs",
 							children: "Prob. Final"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:125:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:142:13",
 							"data-prohibitions": "[editContent]",
 							className: `font-bold ${finalWin > 60 ? "text-green-600" : finalWin > 30 ? "text-amber-500" : "text-red-500"}`,
 							children: [finalWin, "%"]
@@ -44005,19 +44082,19 @@ function OpportunityCard({ opp, product, onClick, onDragStart }) {
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:132:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:149:9",
 					"data-prohibitions": "[editContent]",
 					className: "space-y-1",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:133:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:150:11",
 						"data-prohibitions": "[editContent]",
 						className: "flex justify-between text-[10px] text-slate-500",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:134:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:151:13",
 							"data-prohibitions": "[]",
 							children: "Checklist da Fase"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-							"data-uid": "src/components/kanban/OpportunityCard.tsx:135:13",
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:152:13",
 							"data-prohibitions": "[editContent]",
 							children: [
 								completedActs.length,
@@ -44026,24 +44103,48 @@ function OpportunityCard({ opp, product, onClick, onDragStart }) {
 							]
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:139:11",
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:156:11",
 						"data-prohibitions": "[editContent]",
 						value: progress,
 						className: "h-1.5"
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/kanban/OpportunityCard.tsx:141:9",
+					"data-uid": "src/components/kanban/OpportunityCard.tsx:159:9",
 					"data-prohibitions": "[editContent]",
-					className: "flex items-center text-[10px] text-slate-400 mt-2 border-t pt-2 border-slate-100",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:142:11",
+					className: "flex flex-col text-[10px] text-slate-500 mt-3 border-t pt-2 border-slate-100 gap-1.5",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:160:11",
 						"data-prohibitions": "[editContent]",
-						className: "w-3 h-3 mr-1"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						"data-uid": "src/components/kanban/OpportunityCard.tsx:143:11",
+						className: "flex justify-between items-center",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:161:13",
+							"data-prohibitions": "[editContent]",
+							className: "truncate pr-2",
+							title: opp.creatorEmail,
+							children: ["Criado por: ", opp.creatorEmail?.split("@")[0] || "Desconhecido"]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:164:13",
+							"data-prohibitions": "[editContent]",
+							className: "shrink-0",
+							children: formatDateTime(opp.createdAt)
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/components/kanban/OpportunityCard.tsx:166:11",
 						"data-prohibitions": "[editContent]",
-						children: ["Atualizado: ", new Date(opp.updatedAt).toLocaleDateString("pt-BR")]
+						className: "flex justify-between items-center",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:167:13",
+							"data-prohibitions": "[editContent]",
+							className: "truncate pr-2",
+							title: opp.updaterEmail,
+							children: ["Atualizado por: ", opp.updaterEmail?.split("@")[0] || "Desconhecido"]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/kanban/OpportunityCard.tsx:170:13",
+							"data-prohibitions": "[editContent]",
+							className: "shrink-0",
+							children: formatDateTime(opp.updatedAt)
+						})]
 					})]
 				})
 			]
@@ -45979,27 +46080,27 @@ function SidebarLayout() {
 	const location = useLocation();
 	const { signOut, user } = useAuth();
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarProvider, {
-		"data-uid": "src/components/SidebarLayout.tsx:40:5",
+		"data-uid": "src/components/SidebarLayout.tsx:41:5",
 		"data-prohibitions": "[editContent]",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/SidebarLayout.tsx:41:7",
+			"data-uid": "src/components/SidebarLayout.tsx:42:7",
 			"data-prohibitions": "[editContent]",
 			className: "flex min-h-screen w-full bg-slate-50",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sidebar, {
-				"data-uid": "src/components/SidebarLayout.tsx:42:9",
+				"data-uid": "src/components/SidebarLayout.tsx:43:9",
 				"data-prohibitions": "[editContent]",
 				className: "border-r border-slate-200 bg-white",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarHeader, {
-						"data-uid": "src/components/SidebarLayout.tsx:43:11",
+						"data-uid": "src/components/SidebarLayout.tsx:44:11",
 						"data-prohibitions": "[]",
 						className: "p-4 border-b border-slate-100 flex items-center justify-center",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/SidebarLayout.tsx:44:13",
+							"data-uid": "src/components/SidebarLayout.tsx:45:13",
 							"data-prohibitions": "[]",
 							className: "text-primary font-bold text-2xl tracking-tight flex items-center gap-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/SidebarLayout.tsx:45:15",
+								"data-uid": "src/components/SidebarLayout.tsx:46:15",
 								"data-prohibitions": "[]",
 								className: "bg-primary text-white p-1 rounded-sm text-sm",
 								children: "F"
@@ -46007,41 +46108,41 @@ function SidebarLayout() {
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContent, {
-						"data-uid": "src/components/SidebarLayout.tsx:49:11",
+						"data-uid": "src/components/SidebarLayout.tsx:50:11",
 						"data-prohibitions": "[editContent]",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarGroup, {
-							"data-uid": "src/components/SidebarLayout.tsx:50:13",
+							"data-uid": "src/components/SidebarLayout.tsx:51:13",
 							"data-prohibitions": "[editContent]",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarGroupLabel, {
-								"data-uid": "src/components/SidebarLayout.tsx:51:15",
+								"data-uid": "src/components/SidebarLayout.tsx:52:15",
 								"data-prohibitions": "[]",
 								className: "text-xs uppercase tracking-wider text-slate-500",
 								children: "Menu Principal"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarGroupContent, {
-								"data-uid": "src/components/SidebarLayout.tsx:54:15",
+								"data-uid": "src/components/SidebarLayout.tsx:55:15",
 								"data-prohibitions": "[editContent]",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenu, {
-									"data-uid": "src/components/SidebarLayout.tsx:55:17",
+									"data-uid": "src/components/SidebarLayout.tsx:56:17",
 									"data-prohibitions": "[editContent]",
 									children: menuItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, {
-										"data-uid": "src/components/SidebarLayout.tsx:57:21",
+										"data-uid": "src/components/SidebarLayout.tsx:58:21",
 										"data-prohibitions": "[editContent]",
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
-											"data-uid": "src/components/SidebarLayout.tsx:58:23",
+											"data-uid": "src/components/SidebarLayout.tsx:59:23",
 											"data-prohibitions": "[editContent]",
 											asChild: true,
 											isActive: location.pathname === item.url,
 											className: "data-[active=true]:bg-primary/10 data-[active=true]:text-primary",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-												"data-uid": "src/components/SidebarLayout.tsx:63:25",
+												"data-uid": "src/components/SidebarLayout.tsx:64:25",
 												"data-prohibitions": "[editContent]",
 												to: item.url,
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
-													"data-uid": "src/components/SidebarLayout.tsx:64:27",
+													"data-uid": "src/components/SidebarLayout.tsx:65:27",
 													"data-prohibitions": "[editContent]",
 													className: "h-4 w-4"
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-													"data-uid": "src/components/SidebarLayout.tsx:65:27",
+													"data-uid": "src/components/SidebarLayout.tsx:66:27",
 													"data-prohibitions": "[editContent]",
 													children: item.title
 												})]
@@ -46053,47 +46154,47 @@ function SidebarLayout() {
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/SidebarLayout.tsx:74:11",
+						"data-uid": "src/components/SidebarLayout.tsx:75:11",
 						"data-prohibitions": "[editContent]",
 						className: "mt-auto p-4 border-t border-slate-100 flex items-center justify-between gap-3",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/SidebarLayout.tsx:75:13",
+							"data-uid": "src/components/SidebarLayout.tsx:76:13",
 							"data-prohibitions": "[editContent]",
 							className: "flex items-center gap-3",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Avatar, {
-								"data-uid": "src/components/SidebarLayout.tsx:76:15",
+								"data-uid": "src/components/SidebarLayout.tsx:77:15",
 								"data-prohibitions": "[editContent]",
 								className: "h-9 w-9",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
-									"data-uid": "src/components/SidebarLayout.tsx:77:17",
+									"data-uid": "src/components/SidebarLayout.tsx:78:17",
 									"data-prohibitions": "[editContent]",
 									children: user?.email?.substring(0, 2).toUpperCase() || "U"
 								})
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/components/SidebarLayout.tsx:79:15",
+								"data-uid": "src/components/SidebarLayout.tsx:80:15",
 								"data-prohibitions": "[editContent]",
 								className: "flex flex-col overflow-hidden",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/SidebarLayout.tsx:80:17",
+									"data-uid": "src/components/SidebarLayout.tsx:81:17",
 									"data-prohibitions": "[editContent]",
 									className: "text-sm font-medium leading-none truncate",
 									children: user?.email?.split("@")[0]
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/SidebarLayout.tsx:83:17",
+									"data-uid": "src/components/SidebarLayout.tsx:84:17",
 									"data-prohibitions": "[]",
 									className: "text-xs text-muted-foreground mt-1 truncate",
 									children: "Acesso ao Mercado"
 								})]
 							})]
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-							"data-uid": "src/components/SidebarLayout.tsx:88:13",
+							"data-uid": "src/components/SidebarLayout.tsx:89:13",
 							"data-prohibitions": "[]",
 							variant: "ghost",
 							size: "icon",
 							onClick: signOut,
 							title: "Sair",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, {
-								"data-uid": "src/components/SidebarLayout.tsx:89:15",
+								"data-uid": "src/components/SidebarLayout.tsx:90:15",
 								"data-prohibitions": "[editContent]",
 								className: "h-4 w-4 text-slate-500"
 							})
@@ -46101,64 +46202,73 @@ function SidebarLayout() {
 					})
 				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
-				"data-uid": "src/components/SidebarLayout.tsx:94:9",
+				"data-uid": "src/components/SidebarLayout.tsx:95:9",
 				"data-prohibitions": "[editContent]",
-				className: "flex-1 flex flex-col min-w-0",
+				className: "flex-1 flex flex-col min-w-0 w-full overflow-hidden",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-					"data-uid": "src/components/SidebarLayout.tsx:95:11",
+					"data-uid": "src/components/SidebarLayout.tsx:96:11",
 					"data-prohibitions": "[editContent]",
-					className: "h-16 border-b border-slate-200 bg-white flex items-center justify-between px-6 shrink-0",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/components/SidebarLayout.tsx:96:13",
+					className: "h-16 border-b border-slate-200 bg-white flex items-center justify-between px-4 sm:px-6 shrink-0 gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/components/SidebarLayout.tsx:97:13",
 						"data-prohibitions": "[editContent]",
-						className: "flex items-center gap-4 flex-1",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-							"data-uid": "src/components/SidebarLayout.tsx:97:15",
+						className: "flex items-center gap-3 flex-1 overflow-hidden",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarTrigger, {
+							"data-uid": "src/components/SidebarLayout.tsx:98:15",
 							"data-prohibitions": "[editContent]",
-							className: "text-xl font-semibold text-slate-800",
+							className: "md:hidden shrink-0"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+							"data-uid": "src/components/SidebarLayout.tsx:99:15",
+							"data-prohibitions": "[editContent]",
+							className: "text-lg sm:text-xl font-semibold text-slate-800 truncate",
 							children: menuItems.find((m) => m.url === location.pathname)?.title || "Market Access"
-						})
+						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/SidebarLayout.tsx:101:13",
+						"data-uid": "src/components/SidebarLayout.tsx:103:13",
 						"data-prohibitions": "[]",
-						className: "flex items-center gap-4 w-full max-w-md justify-end",
+						className: "flex items-center gap-2 sm:gap-4 justify-end shrink-0",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/SidebarLayout.tsx:102:15",
+							"data-uid": "src/components/SidebarLayout.tsx:104:15",
 							"data-prohibitions": "[]",
-							className: "relative w-64 hidden sm:block",
+							className: "relative w-48 sm:w-64 hidden sm:block",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, {
-								"data-uid": "src/components/SidebarLayout.tsx:103:17",
+								"data-uid": "src/components/SidebarLayout.tsx:105:17",
 								"data-prohibitions": "[editContent]",
 								className: "absolute left-2.5 top-2.5 h-4 w-4 text-slate-400"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/components/SidebarLayout.tsx:104:17",
+								"data-uid": "src/components/SidebarLayout.tsx:106:17",
 								"data-prohibitions": "[editContent]",
 								placeholder: "Buscar oportunidade...",
-								className: "pl-9 bg-slate-50 border-slate-200"
+								className: "pl-9 bg-slate-50 border-slate-200 h-9"
 							})]
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-							"data-uid": "src/components/SidebarLayout.tsx:109:15",
+							"data-uid": "src/components/SidebarLayout.tsx:111:15",
 							"data-prohibitions": "[]",
 							asChild: true,
 							size: "sm",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-								"data-uid": "src/components/SidebarLayout.tsx:110:17",
+								"data-uid": "src/components/SidebarLayout.tsx:112:17",
 								"data-prohibitions": "[]",
 								to: "/opportunities?new=true",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
-									"data-uid": "src/components/SidebarLayout.tsx:111:19",
+									"data-uid": "src/components/SidebarLayout.tsx:113:19",
 									"data-prohibitions": "[editContent]",
-									className: "mr-2 h-4 w-4"
-								}), " Nova Oportunidade"]
+									className: "sm:mr-2 h-4 w-4"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									"data-uid": "src/components/SidebarLayout.tsx:114:19",
+									"data-prohibitions": "[]",
+									className: "hidden sm:inline",
+									children: "Nova Oportunidade"
+								})]
 							})
 						})]
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/SidebarLayout.tsx:116:11",
+					"data-uid": "src/components/SidebarLayout.tsx:119:11",
 					"data-prohibitions": "[]",
-					className: "flex-1 overflow-auto p-6",
+					className: "flex-1 overflow-auto p-4 sm:p-6",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {
-						"data-uid": "src/components/SidebarLayout.tsx:117:13",
+						"data-uid": "src/components/SidebarLayout.tsx:120:13",
 						"data-prohibitions": "[editContent]"
 					})
 				})]
@@ -46298,4 +46408,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-DkGV71oV.js.map
+//# sourceMappingURL=index-DI1GgmX1.js.map

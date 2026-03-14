@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Clock, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { Opportunity, Product } from '@/types'
 import { STAGES, STAGE_CHECKLISTS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
@@ -43,6 +43,20 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
       currency: 'BRL',
       maximumFractionDigits: 0,
     }).format(val)
+
+  const formatDateTime = (isoString: string) => {
+    try {
+      return new Date(isoString).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    } catch {
+      return ''
+    }
+  }
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -97,15 +111,18 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
               </AlertDialogTrigger>
               <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Opportunity</AlertDialogTitle>
+                  <AlertDialogTitle>Excluir Oportunidade</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this opportunity? This action cannot be undone.
+                    Tem certeza de que deseja excluir esta oportunidade? Esta ação não pode ser
+                    desfeita.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+                    Cancelar
+                  </AlertDialogCancel>
                   <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
-                    Delete
+                    Excluir
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -138,9 +155,20 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
           </div>
           <Progress value={progress} className="h-1.5" />
         </div>
-        <div className="flex items-center text-[10px] text-slate-400 mt-2 border-t pt-2 border-slate-100">
-          <Clock className="w-3 h-3 mr-1" />
-          <span>Atualizado: {new Date(opp.updatedAt).toLocaleDateString('pt-BR')}</span>
+
+        <div className="flex flex-col text-[10px] text-slate-500 mt-3 border-t pt-2 border-slate-100 gap-1.5">
+          <div className="flex justify-between items-center">
+            <span className="truncate pr-2" title={opp.creatorEmail}>
+              Criado por: {opp.creatorEmail?.split('@')[0] || 'Desconhecido'}
+            </span>
+            <span className="shrink-0">{formatDateTime(opp.createdAt)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="truncate pr-2" title={opp.updaterEmail}>
+              Atualizado por: {opp.updaterEmail?.split('@')[0] || 'Desconhecido'}
+            </span>
+            <span className="shrink-0">{formatDateTime(opp.updatedAt)}</span>
+          </div>
         </div>
       </CardContent>
     </Card>

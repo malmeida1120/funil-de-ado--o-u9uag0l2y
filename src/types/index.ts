@@ -27,6 +27,10 @@ export interface Opportunity {
   status?: 'ACTIVE' | 'WON' | 'LOST'
   createdAt: string
   updatedAt: string
+  userId?: string
+  lastUpdatedBy?: string
+  creatorEmail?: string
+  updaterEmail?: string
 }
 
 export interface DashboardMetrics {

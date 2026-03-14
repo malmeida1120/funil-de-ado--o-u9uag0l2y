@@ -19,6 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -91,29 +92,31 @@ export default function SidebarLayout() {
           </div>
         </Sidebar>
 
-        <main className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-6 shrink-0">
-            <div className="flex items-center gap-4 flex-1">
-              <h1 className="text-xl font-semibold text-slate-800">
+        <main className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">
+          <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-4 sm:px-6 shrink-0 gap-2">
+            <div className="flex items-center gap-3 flex-1 overflow-hidden">
+              <SidebarTrigger className="md:hidden shrink-0" />
+              <h1 className="text-lg sm:text-xl font-semibold text-slate-800 truncate">
                 {menuItems.find((m) => m.url === location.pathname)?.title || 'Market Access'}
               </h1>
             </div>
-            <div className="flex items-center gap-4 w-full max-w-md justify-end">
-              <div className="relative w-64 hidden sm:block">
+            <div className="flex items-center gap-2 sm:gap-4 justify-end shrink-0">
+              <div className="relative w-48 sm:w-64 hidden sm:block">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Buscar oportunidade..."
-                  className="pl-9 bg-slate-50 border-slate-200"
+                  className="pl-9 bg-slate-50 border-slate-200 h-9"
                 />
               </div>
               <Button asChild size="sm">
                 <Link to="/opportunities?new=true">
-                  <Plus className="mr-2 h-4 w-4" /> Nova Oportunidade
+                  <Plus className="sm:mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Nova Oportunidade</span>
                 </Link>
               </Button>
             </div>
           </header>
-          <div className="flex-1 overflow-auto p-6">
+          <div className="flex-1 overflow-auto p-4 sm:p-6">
             <Outlet />
           </div>
         </main>

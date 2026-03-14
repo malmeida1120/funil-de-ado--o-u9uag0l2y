@@ -91,6 +91,20 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
     }
   }
 
+  const formatDateTime = (isoString: string) => {
+    try {
+      return new Date(isoString).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    } catch {
+      return ''
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -227,13 +241,21 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
           </div>
 
           {opportunityId && formData.updatedAt && (
-            <div className="col-span-2 text-xs text-slate-500 text-right mt-2">
-              Data da última atualização: {new Date(formData.updatedAt).toLocaleDateString('pt-BR')}{' '}
-              às{' '}
-              {new Date(formData.updatedAt).toLocaleTimeString('pt-BR', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+            <div className="col-span-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mt-4 space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span>
+                  <strong>Criado por:</strong> {formData.creatorEmail}
+                </span>
+                <span className="text-slate-400">
+                  {formData.createdAt ? formatDateTime(formData.createdAt) : ''}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>
+                  <strong>Última atualização por:</strong> {formData.updaterEmail}
+                </span>
+                <span className="text-slate-400">{formatDateTime(formData.updatedAt)}</span>
+              </div>
             </div>
           )}
         </div>

@@ -17,23 +17,32 @@ interface MainState {
 
 const MainContext = createContext<MainState | undefined>(undefined)
 
-const mapOpp = (d: any): Opportunity => ({
-  id: d.id,
-  title: d.title,
-  description: d.description || '',
-  productId: d.product_id,
-  stageId: d.stage_id,
-  potentialValue: Number(d.potential_value),
-  estimatedDate: d.estimated_date,
-  qualitativeWin: d.qualitative_win,
-  completedActivities: d.completed_activities || [],
-  status: d.status,
-  createdAt: d.created_at,
-  updatedAt: d.updated_at,
-})
+const mapOpp = (d: any, profiles: any[]): Opportunity => {
+  const creator = profiles.find((p) => p.id === d.user_id)
+  const updater = profiles.find((p) => p.id === (d.last_updated_by || d.user_id))
+
+  return {
+    id: d.id,
+    title: d.title,
+    description: d.description || '',
+    productId: d.product_id,
+    stageId: d.stage_id,
+    potentialValue: Number(d.potential_value),
+    estimatedDate: d.estimated_date,
+    qualitativeWin: d.qualitative_win,
+    completedActivities: d.completed_activities || [],
+    status: d.status,
+    createdAt: d.created_at,
+    updatedAt: d.updated_at,
+    userId: d.user_id,
+    lastUpdatedBy: d.last_updated_by || d.user_id,
+    creatorEmail: creator?.email || 'Desconhecido',
+    updaterEmail: updater?.email || 'Desconhecido',
+  }
+}
 
 const unmapOpp = (o: Partial<Opportunity>, uid: string) => {
-  const d: any = { user_id: uid }
+  const d: any = {}
   if (o.title !== undefined) d.title = o.title
   if (o.description !== undefined) d.description = o.description
   if (o.productId !== undefined) d.product_id = o.productId
@@ -50,19 +59,25 @@ export function MainProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [profiles, setProfiles] = useState<any[]>([])
 
   useEffect(() => {
     if (!user) {
       setOpportunities([])
       setProducts([])
+      setProfiles([])
       return
     }
 
     const fetchData = async () => {
-      const [prodsRes, oppsRes] = await Promise.all([
+      const [prodsRes, oppsRes, profilesRes] = await Promise.all([
         supabase.from('products').select('*'),
         supabase.from('opportunities').select('*'),
+        supabase.from('profiles' as any).select('*'), // Casting to any as it's dynamically added via migration
       ])
+
+      const currentProfiles = profilesRes.data || []
+      setProfiles(currentProfiles)
 
       if (prodsRes.data) {
         setProducts(
@@ -73,7 +88,7 @@ export function MainProvider({ children }: { children: ReactNode }) {
           })),
         )
       }
-      if (oppsRes.data) setOpportunities(oppsRes.data.map(mapOpp))
+      if (oppsRes.data) setOpportunities(oppsRes.data.map((o) => mapOpp(o, currentProfiles)))
     }
     fetchData()
   }, [user])
@@ -81,19 +96,36 @@ export function MainProvider({ children }: { children: ReactNode }) {
   const addOpportunity = async (opp: Omit<Opportunity, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!user) return
     const dbData = unmapOpp(opp, user.id)
+    dbData.user_id = user.id
+    dbData.last_updated_by = user.id
     dbData.status = opp.status || 'ACTIVE'
+
     const { data } = await supabase.from('opportunities').insert(dbData).select().single()
-    if (data) setOpportunities((prev) => [...prev, mapOpp(data)])
+    if (data) {
+      const mapped = mapOpp(data, profiles)
+      mapped.creatorEmail = user.email || mapped.creatorEmail
+      mapped.updaterEmail = user.email || mapped.updaterEmail
+      setOpportunities((prev) => [...prev, mapped])
+    }
   }
 
   const updateOpportunity = async (id: string, updates: Partial<Opportunity>) => {
     if (!user) return
     const dbData = unmapOpp(updates, user.id)
+    dbData.last_updated_by = user.id
 
     // Optimistic UI update
     setOpportunities((prev) =>
       prev.map((o) =>
-        o.id === id ? { ...o, ...updates, updatedAt: new Date().toISOString() } : o,
+        o.id === id
+          ? {
+              ...o,
+              ...updates,
+              updatedAt: new Date().toISOString(),
+              updaterEmail: user.email || o.updaterEmail,
+              lastUpdatedBy: user.id,
+            }
+          : o,
       ),
     )
 
@@ -103,7 +135,10 @@ export function MainProvider({ children }: { children: ReactNode }) {
       .eq('id', id)
       .select()
       .single()
-    if (data) setOpportunities((prev) => prev.map((o) => (o.id === id ? mapOpp(data) : o)))
+
+    if (data) {
+      setOpportunities((prev) => prev.map((o) => (o.id === id ? mapOpp(data, profiles) : o)))
+    }
   }
 
   const moveOpportunity = (id: string, newStage: StageId) => {

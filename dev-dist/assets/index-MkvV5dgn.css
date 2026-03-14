@@ -732,9 +732,6 @@ section[aria-label='Notifications alt+T'] {
 .ml-auto{
   margin-left: auto;
 }
-.mr-1{
-  margin-right: 0.25rem;
-}
 .mr-2{
   margin-right: 0.5rem;
 }
@@ -749,6 +746,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .mt-24{
   margin-top: 6rem;
+}
+.mt-3{
+  margin-top: 0.75rem;
 }
 .mt-4{
   margin-top: 1rem;
@@ -931,6 +931,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .w-4{
   width: 1rem;
+}
+.w-48{
+  width: 12rem;
 }
 .w-5{
   width: 1.25rem;
@@ -1828,6 +1831,10 @@ section[aria-label='Notifications alt+T'] {
 .text-slate-500{
   --tw-text-opacity: 1;
   color: rgb(100 116 139 / var(--tw-text-opacity, 1));
+}
+.text-slate-600{
+  --tw-text-opacity: 1;
+  color: rgb(71 85 105 / var(--tw-text-opacity, 1));
 }
 .text-slate-700{
   --tw-text-opacity: 1;
@@ -2999,11 +3006,17 @@ section[aria-label='Notifications alt+T'] {
   .sm\:top-auto{
     top: auto;
   }
+  .sm\:mr-2{
+    margin-right: 0.5rem;
+  }
   .sm\:mt-0{
     margin-top: 0px;
   }
   .sm\:block{
     display: block;
+  }
+  .sm\:inline{
+    display: inline;
   }
   .sm\:flex{
     display: flex;
@@ -3035,6 +3048,9 @@ section[aria-label='Notifications alt+T'] {
   .sm\:gap-2\.5{
     gap: 0.625rem;
   }
+  .sm\:gap-4{
+    gap: 1rem;
+  }
   .sm\:space-x-2 > :not([hidden]) ~ :not([hidden]){
     --tw-space-x-reverse: 0;
     margin-right: calc(0.5rem * var(--tw-space-x-reverse));
@@ -3043,8 +3059,19 @@ section[aria-label='Notifications alt+T'] {
   .sm\:rounded-lg{
     border-radius: var(--radius);
   }
+  .sm\:p-6{
+    padding: 1.5rem;
+  }
+  .sm\:px-6{
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
   .sm\:text-left{
     text-align: left;
+  }
+  .sm\:text-xl{
+    font-size: 1.25rem;
+    line-height: 1.75rem;
   }
   .data-\[state\=open\]\:sm\:slide-in-from-bottom-full[data-state="open"]{
     --tw-enter-translate-y: 100%;
@@ -3062,6 +3089,9 @@ section[aria-label='Notifications alt+T'] {
   }
   .md\:flex{
     display: flex;
+  }
+  .md\:hidden{
+    display: none;
   }
   .md\:w-\[var\(--radix-navigation-menu-viewport-width\)\]{
     width: var(--radix-navigation-menu-viewport-width);
