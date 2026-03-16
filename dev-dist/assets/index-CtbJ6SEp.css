@@ -971,6 +971,9 @@ section[aria-label='Notifications alt+T'] {
 .w-\[120px\]{
   width: 120px;
 }
+.w-\[180px\]{
+  width: 180px;
+}
 .w-\[1px\]{
   width: 1px;
 }
@@ -1029,6 +1032,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .max-w-4xl{
   max-width: 56rem;
+}
+.max-w-5xl{
+  max-width: 64rem;
 }
 .max-w-\[--skeleton-width\]{
   max-width: var(--skeleton-width);
@@ -1408,6 +1414,10 @@ section[aria-label='Notifications alt+T'] {
 .bg-accent{
   background-color: hsl(var(--accent));
 }
+.bg-amber-100{
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 243 199 / var(--tw-bg-opacity, 1));
+}
 .bg-background{
   background-color: hsl(var(--background));
 }
@@ -1619,6 +1629,10 @@ section[aria-label='Notifications alt+T'] {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
 }
+.py-8{
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
 .pb-1{
   padding-bottom: 0.25rem;
 }
@@ -1766,6 +1780,10 @@ section[aria-label='Notifications alt+T'] {
 .text-amber-500{
   --tw-text-opacity: 1;
   color: rgb(245 158 11 / var(--tw-text-opacity, 1));
+}
+.text-amber-800{
+  --tw-text-opacity: 1;
+  color: rgb(146 64 14 / var(--tw-text-opacity, 1));
 }
 .text-blue-500{
   --tw-text-opacity: 1;
@@ -2235,6 +2253,10 @@ section[aria-label='Notifications alt+T'] {
 .hover\:bg-accent:hover{
   background-color: hsl(var(--accent));
 }
+.hover\:bg-amber-200:hover{
+  --tw-bg-opacity: 1;
+  background-color: rgb(253 230 138 / var(--tw-bg-opacity, 1));
+}
 .hover\:bg-destructive\/10:hover{
   background-color: hsl(var(--destructive) / 0.1);
 }
@@ -2323,6 +2345,11 @@ section[aria-label='Notifications alt+T'] {
   --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
+.hover\:shadow-sm:hover{
+  --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
 .hover\:after\:bg-sidebar-border:hover::after{
   content: var(--tw-content);
   background-color: hsl(var(--sidebar-border));
@@ -2382,6 +2409,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .active\:cursor-grabbing:active{
   cursor: grabbing;
+}
+.active\:cursor-pointer:active{
+  cursor: pointer;
 }
 .active\:bg-sidebar-accent:active{
   background-color: hsl(var(--sidebar-accent));

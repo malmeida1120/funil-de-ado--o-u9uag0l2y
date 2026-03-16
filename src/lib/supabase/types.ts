@@ -16,6 +16,7 @@ export type Database = {
           description: string | null
           estimated_date: string | null
           id: string
+          last_updated_by: string | null
           potential_value: number
           product_id: string | null
           qualitative_win: number
@@ -31,6 +32,7 @@ export type Database = {
           description?: string | null
           estimated_date?: string | null
           id?: string
+          last_updated_by?: string | null
           potential_value?: number
           product_id?: string | null
           qualitative_win?: number
@@ -46,6 +48,7 @@ export type Database = {
           description?: string | null
           estimated_date?: string | null
           id?: string
+          last_updated_by?: string | null
           potential_value?: number
           product_id?: string | null
           qualitative_win?: number
@@ -83,6 +86,21 @@ export type Database = {
           name?: string
           therapeutic_line?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          email: string
+          id: string
+        }
+        Insert: {
+          email: string
+          id: string
+        }
+        Update: {
+          email?: string
+          id?: string
         }
         Relationships: []
       }
@@ -247,20 +265,28 @@ export const Constants = {
 //   estimated_date: text (nullable)
 //   qualitative_win: integer (not null, default: 0)
 //   completed_activities: jsonb (not null, default: '[]'::jsonb)
+//   last_updated_by: uuid (nullable)
 // Table: products
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
 //   therapeutic_line: text (nullable)
 //   user_id: uuid (not null)
+// Table: profiles
+//   id: uuid (not null)
+//   email: text (not null)
 
 // --- CONSTRAINTS ---
 // Table: opportunities
+//   FOREIGN KEY opportunities_last_updated_by_fkey: FOREIGN KEY (last_updated_by) REFERENCES auth.users(id) ON DELETE SET NULL
 //   PRIMARY KEY opportunities_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY opportunities_product_id_fkey: FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 //   FOREIGN KEY opportunities_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: products
 //   PRIMARY KEY products_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY products_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: profiles
+//   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: opportunities
@@ -269,8 +295,25 @@ export const Constants = {
 // Table: products
 //   Policy "Users can manage their own products" (ALL, PERMISSIVE) roles={public}
 //     USING: (auth.uid() = user_id)
+// Table: profiles
+//   Policy "Profiles are viewable by authenticated users" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 
 // --- DATABASE FUNCTIONS ---
+// FUNCTION handle_new_user()
+//   CREATE OR REPLACE FUNCTION public.handle_new_user()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     INSERT INTO public.profiles (id, email)
+//     VALUES (NEW.id, NEW.email)
+//     ON CONFLICT (id) DO NOTHING;
+//     RETURN NEW;
+//   END;
+//   $function$
+//
 // FUNCTION update_updated_at_column()
 //   CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 //    RETURNS trigger

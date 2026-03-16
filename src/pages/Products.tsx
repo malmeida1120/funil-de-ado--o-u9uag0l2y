@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMainStore } from '@/stores/main'
+import { useAuth } from '@/hooks/use-auth'
 import {
   Table,
   TableBody,
@@ -33,6 +34,8 @@ import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 export default function Products() {
   const { products, addProduct, updateProduct, deleteProduct } = useMainStore()
+  const { profile } = useAuth()
+  const isViewer = profile?.role === 'viewer'
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -74,10 +77,12 @@ export default function Products() {
     <div className="max-w-4xl animate-fade-in pb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h2 className="text-2xl font-semibold text-slate-800">Catálogo de Produtos</h2>
-        <Button onClick={handleOpenAdd}>
-          <Plus className="w-4 h-4 mr-2" />
-          Adicionar Produto
-        </Button>
+        {!isViewer && (
+          <Button onClick={handleOpenAdd}>
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Produto
+          </Button>
+        )}
       </div>
 
       <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
@@ -86,7 +91,7 @@ export default function Products() {
             <TableRow>
               <TableHead>Nome do Produto</TableHead>
               <TableHead>Linha Terapêutica</TableHead>
-              <TableHead className="w-[120px] text-right">Ações</TableHead>
+              {!isViewer && <TableHead className="w-[120px] text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -94,31 +99,36 @@ export default function Products() {
               <TableRow key={product.id}>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>{product.therapeuticLine}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-500 hover:text-slate-900"
-                      onClick={() => handleOpenEdit(product)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => setDeleteId(product.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+                {!isViewer && (
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-500 hover:text-slate-900"
+                        onClick={() => handleOpenEdit(product)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setDeleteId(product.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
             {products.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-12 text-muted-foreground">
+                <TableCell
+                  colSpan={isViewer ? 2 : 3}
+                  className="text-center py-12 text-muted-foreground"
+                >
                   Nenhum produto cadastrado no portfólio.
                 </TableCell>
               </TableRow>
@@ -127,7 +137,6 @@ export default function Products() {
         </Table>
       </div>
 
-      {/* Add/Edit Product Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -160,7 +169,6 @@ export default function Products() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Alert Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

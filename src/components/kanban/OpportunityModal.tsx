@@ -20,6 +20,7 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useMainStore } from '@/stores/main'
+import { useAuth } from '@/hooks/use-auth'
 import { Opportunity, StageId } from '@/types'
 import { STAGE_CHECKLISTS, STAGES } from '@/lib/constants'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,8 @@ interface OpportunityModalProps {
 
 export function OpportunityModal({ isOpen, onClose, opportunityId }: OpportunityModalProps) {
   const { opportunities, products, addOpportunity, updateOpportunity } = useMainStore()
+  const { profile } = useAuth()
+  const isViewer = profile?.role === 'viewer'
 
   const [formData, setFormData] = useState<Partial<Opportunity>>({
     title: '',
@@ -72,7 +75,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
   const checklist = STAGE_CHECKLISTS[currentStageId] || []
 
   const handleSave = () => {
-    if (!formData.title || !formData.productId) return
+    if (isViewer || !formData.title || !formData.productId) return
 
     if (opportunityId) {
       updateOpportunity(opportunityId, formData)
@@ -83,6 +86,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
   }
 
   const toggleActivity = (activity: string) => {
+    if (isViewer) return
     const current = formData.completedActivities || []
     if (current.includes(activity)) {
       setFormData({ ...formData, completedActivities: current.filter((a) => a !== activity) })
@@ -110,7 +114,13 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between pr-8">
-            <DialogTitle>{opportunityId ? 'Editar Oportunidade' : 'Nova Oportunidade'}</DialogTitle>
+            <DialogTitle>
+              {opportunityId
+                ? isViewer
+                  ? 'Detalhes da Oportunidade'
+                  : 'Editar Oportunidade'
+                : 'Nova Oportunidade'}
+            </DialogTitle>
             {stageInfo && (
               <Badge style={{ backgroundColor: stageInfo.hexColor }} className="text-white">
                 {stageInfo.label} ({stageInfo.winPercentage}%)
@@ -123,6 +133,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
           <div className="space-y-2 col-span-2 md:col-span-1">
             <Label>Título (Instituição / Cliente)</Label>
             <Input
+              disabled={isViewer}
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Ex: Hospital das Clínicas"
@@ -131,6 +142,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
           <div className="space-y-2 col-span-2 md:col-span-1">
             <Label>Produto</Label>
             <Select
+              disabled={isViewer}
               value={formData.productId}
               onValueChange={(v) => setFormData({ ...formData, productId: v })}
             >
@@ -150,6 +162,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
           <div className="space-y-2 col-span-2">
             <Label>Descrição</Label>
             <Textarea
+              disabled={isViewer}
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Detalhes adicionais sobre a oportunidade..."
@@ -160,6 +173,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
           <div className="space-y-2">
             <Label>Potencial Estimado (R$)</Label>
             <Input
+              disabled={isViewer}
               type="number"
               value={formData.potentialValue || ''}
               onChange={(e) => setFormData({ ...formData, potentialValue: Number(e.target.value) })}
@@ -168,6 +182,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
           <div className="space-y-2">
             <Label>Previsão de Implementação (Mês/Ano)</Label>
             <Input
+              disabled={isViewer}
               type="month"
               value={formData.estimatedDate}
               onChange={(e) => setFormData({ ...formData, estimatedDate: e.target.value })}
@@ -177,6 +192,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
           <div className="space-y-2 col-span-2 md:col-span-1">
             <Label>Status da Oportunidade</Label>
             <Select
+              disabled={isViewer}
               value={formData.status || 'ACTIVE'}
               onValueChange={(v) => setFormData({ ...formData, status: v as any })}
             >
@@ -197,6 +213,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
               <span className="font-bold text-primary">{formData.qualitativeWin}%</span>
             </div>
             <Slider
+              disabled={isViewer}
               value={[formData.qualitativeWin || 0]}
               onValueChange={(v) => setFormData({ ...formData, qualitativeWin: v[0] })}
               max={100}
@@ -220,6 +237,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
               {checklist.map((activity, idx) => (
                 <div key={idx} className="flex items-start space-x-2">
                   <Checkbox
+                    disabled={isViewer}
                     id={`act-${idx}`}
                     checked={(formData.completedActivities || []).includes(activity)}
                     onCheckedChange={() => toggleActivity(activity)}
@@ -262,9 +280,9 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancelar
+            {isViewer ? 'Fechar' : 'Cancelar'}
           </Button>
-          <Button onClick={handleSave}>Salvar Oportunidade</Button>
+          {!isViewer && <Button onClick={handleSave}>Salvar Oportunidade</Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

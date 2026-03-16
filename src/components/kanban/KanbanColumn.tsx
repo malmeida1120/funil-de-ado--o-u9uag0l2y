@@ -14,6 +14,7 @@ interface KanbanColumnProps {
   onDragOver: (e: React.DragEvent) => void
   onDragStart: (e: React.DragEvent, oppId: string) => void
   onOppClick: (oppId: string) => void
+  isViewer?: boolean
 }
 
 export function KanbanColumn({
@@ -28,6 +29,7 @@ export function KanbanColumn({
   onDragOver,
   onDragStart,
   onOppClick,
+  isViewer,
 }: KanbanColumnProps) {
   return (
     <div
@@ -53,11 +55,12 @@ export function KanbanColumn({
             product={products.find((p) => p.id === opp.productId)}
             onClick={() => onOppClick(opp.id)}
             onDragStart={onDragStart}
+            isViewer={isViewer}
           />
         ))}
         {opps.length === 0 && (
           <div className="text-center p-4 text-sm text-slate-400 border-2 border-dashed border-slate-200 rounded-lg bg-white/50">
-            Arraste cards para cá
+            {isViewer ? 'Nenhuma oportunidade' : 'Arraste cards para cá'}
           </div>
         )}
       </div>

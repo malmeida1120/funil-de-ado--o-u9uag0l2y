@@ -7,6 +7,7 @@ import {
   Search,
   Plus,
   LogOut,
+  Users,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -30,12 +31,16 @@ const menuItems = [
   { title: 'Dashboard Executivo', url: '/', icon: LayoutDashboard },
   { title: 'Oportunidades', url: '/opportunities', icon: KanbanSquare },
   { title: 'Produtos', url: '/products', icon: Package },
+  { title: 'Gestão de Acessos', url: '/access-management', icon: Users, adminOnly: true },
   { title: 'Configurações', url: '/settings', icon: Settings },
 ]
 
 export default function SidebarLayout() {
   const location = useLocation()
-  const { signOut, user } = useAuth()
+  const { signOut, user, profile } = useAuth()
+
+  const isViewer = profile?.role === 'viewer'
+  const visibleMenuItems = menuItems.filter((item) => !item.adminOnly || profile?.role === 'admin')
 
   return (
     <SidebarProvider>
@@ -54,7 +59,7 @@ export default function SidebarLayout() {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {menuItems.map((item) => (
+                  {visibleMenuItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -97,7 +102,8 @@ export default function SidebarLayout() {
             <div className="flex items-center gap-3 flex-1 overflow-hidden">
               <SidebarTrigger className="md:hidden shrink-0" />
               <h1 className="text-lg sm:text-xl font-semibold text-slate-800 truncate">
-                {menuItems.find((m) => m.url === location.pathname)?.title || 'Market Access'}
+                {visibleMenuItems.find((m) => m.url === location.pathname)?.title ||
+                  'Market Access'}
               </h1>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 justify-end shrink-0">
@@ -108,12 +114,14 @@ export default function SidebarLayout() {
                   className="pl-9 bg-slate-50 border-slate-200 h-9"
                 />
               </div>
-              <Button asChild size="sm">
-                <Link to="/opportunities?new=true">
-                  <Plus className="sm:mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Nova Oportunidade</span>
-                </Link>
-              </Button>
+              {!isViewer && (
+                <Button asChild size="sm">
+                  <Link to="/opportunities?new=true">
+                    <Plus className="sm:mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Nova Oportunidade</span>
+                  </Link>
+                </Button>
+              )}
             </div>
           </header>
           <div className="flex-1 overflow-auto p-4 sm:p-6">

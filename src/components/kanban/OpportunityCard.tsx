@@ -25,9 +25,16 @@ interface OpportunityCardProps {
   product?: Product
   onClick: () => void
   onDragStart: (e: React.DragEvent, oppId: string) => void
+  isViewer?: boolean
 }
 
-export function OpportunityCard({ opp, product, onClick, onDragStart }: OpportunityCardProps) {
+export function OpportunityCard({
+  opp,
+  product,
+  onClick,
+  onDragStart,
+  isViewer,
+}: OpportunityCardProps) {
   const { deleteOpportunity } = useMainStore()
   const { toast } = useToast()
 
@@ -63,12 +70,12 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
     const { error } = await deleteOpportunity(opp.id)
     if (error) {
       toast({
-        title: 'Failed to delete opportunity. Please try again.',
+        title: 'Falha ao excluir oportunidade. Tente novamente.',
         variant: 'destructive',
       })
     } else {
       toast({
-        title: 'Opportunity deleted successfully',
+        title: 'Oportunidade excluída com sucesso',
       })
     }
   }
@@ -79,9 +86,10 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
         'cursor-pointer hover:shadow-md transition-shadow active:cursor-grabbing border-slate-200',
         opp.status === 'WON' && 'border-green-500 bg-green-50/50',
         opp.status === 'LOST' && 'border-red-500 bg-red-50/50',
+        isViewer && 'cursor-pointer active:cursor-pointer hover:shadow-sm',
       )}
-      draggable
-      onDragStart={(e) => onDragStart(e, opp.id)}
+      draggable={!isViewer}
+      onDragStart={(e) => !isViewer && onDragStart(e, opp.id)}
       onClick={onClick}
     >
       <CardContent className="p-4 space-y-3">
@@ -98,35 +106,40 @@ export function OpportunityCard({ opp, product, onClick, onDragStart }: Opportun
                 Perdida
               </Badge>
             )}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Excluir Oportunidade</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza de que deseja excluir esta oportunidade? Esta ação não pode ser
-                    desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
-                    Cancelar
-                  </AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
-                    Excluir
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {!isViewer && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir Oportunidade</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza de que deseja excluir esta oportunidade? Esta ação não pode ser
+                      desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+                      Cancelar
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-red-500 hover:bg-red-600"
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
         <div className="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded inline-block">

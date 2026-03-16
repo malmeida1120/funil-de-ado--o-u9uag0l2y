@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useMainStore } from '@/stores/main'
+import { useAuth } from '@/hooks/use-auth'
 import { STAGE_ORDER, STAGES, STAGE_CHECKLISTS } from '@/lib/constants'
 import { StageId } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,8 @@ import { KanbanColumn } from '@/components/kanban/KanbanColumn'
 
 export default function Opportunities() {
   const { opportunities, updateOpportunity, products } = useMainStore()
+  const { profile } = useAuth()
+  const isViewer = profile?.role === 'viewer'
   const { toast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedOppId, setSelectedOppId] = useState<string | null>(null)
@@ -27,7 +30,7 @@ export default function Opportunities() {
   const [selectedProductId, setSelectedProductId] = useState<string>('ALL')
   const [selectedClients, setSelectedClients] = useState<string[]>([])
 
-  const isNewOpen = searchParams.get('new') === 'true'
+  const isNewOpen = searchParams.get('new') === 'true' && !isViewer
 
   const uniqueClients = useMemo(() => {
     const clients = new Set(opportunities.map((o) => o.title))
@@ -48,11 +51,14 @@ export default function Opportunities() {
   }
 
   const handleDragStart = (e: React.DragEvent, oppId: string) => {
+    if (isViewer) return e.preventDefault()
     e.dataTransfer.setData('oppId', oppId)
   }
 
   const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault()
+    if (isViewer) return
+
     const oppId = e.dataTransfer.getData('oppId')
     const opp = opportunities.find((o) => o.id === oppId)
     if (!opp) return
@@ -150,6 +156,7 @@ export default function Opportunities() {
               onDragOver={handleDragOver}
               onDragStart={handleDragStart}
               onOppClick={setSelectedOppId}
+              isViewer={isViewer}
             />
           )
         })}
@@ -166,6 +173,7 @@ export default function Opportunities() {
           onDragOver={handleDragOver}
           onDragStart={handleDragStart}
           onOppClick={setSelectedOppId}
+          isViewer={isViewer}
         />
 
         <KanbanColumn
@@ -180,6 +188,7 @@ export default function Opportunities() {
           onDragOver={handleDragOver}
           onDragStart={handleDragStart}
           onOppClick={setSelectedOppId}
+          isViewer={isViewer}
         />
       </div>
 
