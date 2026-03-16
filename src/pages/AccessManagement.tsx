@@ -20,6 +20,17 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
+import { Trash2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface Profile {
   id: string
@@ -32,6 +43,7 @@ export default function AccessManagement() {
   const { profile } = useAuth()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
+  const [userToDelete, setUserToDelete] = useState<string | null>(null)
   const { toast } = useToast()
 
   const fetchProfiles = async () => {
@@ -69,6 +81,18 @@ export default function AccessManagement() {
     } else {
       toast({ title: 'Erro ao atualizar permissão', variant: 'destructive' })
     }
+  }
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return
+    const { error } = await supabase.from('profiles').delete().eq('id', userToDelete)
+    if (!error) {
+      toast({ title: 'Acesso do usuário removido com sucesso!' })
+      fetchProfiles()
+    } else {
+      toast({ title: 'Erro ao remover usuário', variant: 'destructive' })
+    }
+    setUserToDelete(null)
   }
 
   return (
@@ -115,7 +139,7 @@ export default function AccessManagement() {
                   </TableCell>
                   <TableCell>
                     <Select
-                      disabled={!p.is_approved}
+                      disabled={!p.is_approved || p.id === profile?.id}
                       value={p.role}
                       onValueChange={(val) => handleRoleChange(p.id, val)}
                     >
@@ -130,11 +154,27 @@ export default function AccessManagement() {
                     </Select>
                   </TableCell>
                   <TableCell className="text-right">
-                    {!p.is_approved && (
-                      <Button size="sm" onClick={() => handleApprove(p.id)}>
-                        Aprovar
+                    <div className="flex items-center justify-end gap-2">
+                      {!p.is_approved && (
+                        <Button size="sm" onClick={() => handleApprove(p.id)}>
+                          Aprovar
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setUserToDelete(p.id)}
+                        disabled={p.id === profile?.id}
+                        title={
+                          p.id === profile?.id
+                            ? 'Você não pode excluir sua própria conta'
+                            : 'Remover acesso'
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -149,6 +189,27 @@ export default function AccessManagement() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o acesso deste usuário
+              ao sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir Acesso
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

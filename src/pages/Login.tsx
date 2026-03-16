@@ -10,8 +10,8 @@ import { toast } from '@/hooks/use-toast'
 
 export default function Login() {
   const { signIn, signUp, user } = useAuth()
-  const [email, setEmail] = useState('test@example.com')
-  const [password, setPassword] = useState('password123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
   if (user) {

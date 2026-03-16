@@ -93,14 +93,20 @@ export type Database = {
         Row: {
           email: string
           id: string
+          is_approved: boolean
+          role: string
         }
         Insert: {
           email: string
           id: string
+          is_approved?: boolean
+          role?: string
         }
         Update: {
           email?: string
           id?: string
+          is_approved?: boolean
+          role?: string
         }
         Relationships: []
       }
@@ -274,6 +280,8 @@ export const Constants = {
 // Table: profiles
 //   id: uuid (not null)
 //   email: text (not null)
+//   role: text (not null, default: 'viewer'::text)
+//   is_approved: boolean (not null, default: false)
 
 // --- CONSTRAINTS ---
 // Table: opportunities
@@ -287,15 +295,33 @@ export const Constants = {
 // Table: profiles
 //   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
+//   CHECK profiles_role_check: CHECK ((role = ANY (ARRAY['admin'::text, 'editor'::text, 'viewer'::text])))
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: opportunities
-//   Policy "Users can manage their own opportunities" (ALL, PERMISSIVE) roles={public}
-//     USING: (auth.uid() = user_id)
+//   Policy "Approved users can view opportunities" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true))))
+//   Policy "Editors and admins can delete opportunities" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true) AND (profiles.role = ANY (ARRAY['admin'::text, 'editor'::text])))))
+//   Policy "Editors and admins can insert opportunities" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true) AND (profiles.role = ANY (ARRAY['admin'::text, 'editor'::text])))))
+//   Policy "Editors and admins can update opportunities" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true) AND (profiles.role = ANY (ARRAY['admin'::text, 'editor'::text])))))
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true) AND (profiles.role = ANY (ARRAY['admin'::text, 'editor'::text])))))
 // Table: products
-//   Policy "Users can manage their own products" (ALL, PERMISSIVE) roles={public}
-//     USING: (auth.uid() = user_id)
+//   Policy "Approved users can view products" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true))))
+//   Policy "Editors and admins can delete products" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true) AND (profiles.role = ANY (ARRAY['admin'::text, 'editor'::text])))))
+//   Policy "Editors and admins can insert products" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true) AND (profiles.role = ANY (ARRAY['admin'::text, 'editor'::text])))))
+//   Policy "Editors and admins can update products" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true) AND (profiles.role = ANY (ARRAY['admin'::text, 'editor'::text])))))
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true) AND (profiles.role = ANY (ARRAY['admin'::text, 'editor'::text])))))
 // Table: profiles
+//   Policy "Admins can update profiles" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (( SELECT profiles_1.role    FROM profiles profiles_1   WHERE (profiles_1.id = auth.uid())) = 'admin'::text)
+//     WITH CHECK: (( SELECT profiles_1.role    FROM profiles profiles_1   WHERE (profiles_1.id = auth.uid())) = 'admin'::text)
 //   Policy "Profiles are viewable by authenticated users" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 
