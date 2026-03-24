@@ -38,7 +38,7 @@ export function OpportunityCard({
   const { deleteOpportunity } = useMainStore()
   const { toast } = useToast()
 
-  const stage = STAGES[opp.stageId]
+  const stage = STAGES[opp.stageId] || { label: 'Desconhecido', winPercentage: 0, hexColor: '#999' }
   const requiredActs = STAGE_CHECKLISTS[opp.stageId] || []
   const completedActs = (opp.completedActivities || []).filter((a) => requiredActs.includes(a))
   const progress = requiredActs.length ? (completedActs.length / requiredActs.length) * 100 : 100
@@ -49,10 +49,11 @@ export function OpportunityCard({
       style: 'currency',
       currency: 'BRL',
       maximumFractionDigits: 0,
-    }).format(val)
+    }).format(val || 0)
 
   const formatDateTime = (isoString: string) => {
     try {
+      if (!isoString) return ''
       return new Date(isoString).toLocaleString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
@@ -94,7 +95,9 @@ export function OpportunityCard({
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex justify-between items-start gap-2">
-          <span className="font-semibold text-slate-900 leading-tight">{opp.title}</span>
+          <span className="font-semibold text-slate-900 leading-tight">
+            {opp.title || 'Sem Título'}
+          </span>
           <div className="flex items-center gap-1 shrink-0">
             {opp.status === 'WON' && (
               <Badge className="bg-green-500 hover:bg-green-600 shrink-0 text-[10px] px-1.5 py-0">

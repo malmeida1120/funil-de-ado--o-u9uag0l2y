@@ -29,27 +29,32 @@ export default function Index() {
   const [selectedClients, setSelectedClients] = useState<string[]>([])
 
   const uniqueClients = useMemo(() => {
-    const clients = new Set(opportunities.map((o) => o.title))
+    const clients = new Set(opportunities.map((o) => o.title || 'Sem Título'))
     return Array.from(clients).sort()
   }, [opportunities])
 
   const filteredOpportunities = useMemo(() => {
     return opportunities.filter((opp) => {
       const matchProduct = selectedProductId === 'ALL' || opp.productId === selectedProductId
-      const matchClient = selectedClients.length === 0 || selectedClients.includes(opp.title)
+      const matchClient =
+        selectedClients.length === 0 || selectedClients.includes(opp.title || 'Sem Título')
       return matchProduct && matchClient
     })
   }, [opportunities, selectedProductId, selectedClients])
+
+  const activeOpportunities = useMemo(() => {
+    return filteredOpportunities.filter((o) => o.status === 'ACTIVE' || !o.status)
+  }, [filteredOpportunities])
 
   const metrics = useMemo(() => {
     let totalValue = 0
     let weightedRev = 0
 
-    filteredOpportunities.forEach((opp) => {
-      totalValue += opp.potentialValue
-      const stageWin = STAGES[opp.stageId].winPercentage
-      const finalWin = (opp.qualitativeWin + stageWin) / 2
-      weightedRev += opp.potentialValue * (finalWin / 100)
+    activeOpportunities.forEach((opp) => {
+      totalValue += opp.potentialValue || 0
+      const stageWin = STAGES[opp.stageId]?.winPercentage || 0
+      const finalWin = ((opp.qualitativeWin || 0) + stageWin) / 2
+      weightedRev += (opp.potentialValue || 0) * (finalWin / 100)
     })
 
     const closedOpps = filteredOpportunities.filter(
@@ -63,19 +68,19 @@ export default function Index() {
       weightedRev,
       conversionRate,
     }
-  }, [filteredOpportunities])
+  }, [activeOpportunities, filteredOpportunities])
 
   const uniqueMonths = useMemo(() => {
     const months = new Set<string>()
-    filteredOpportunities.forEach((opp) => {
+    activeOpportunities.forEach((opp) => {
       months.add(opp.estimatedDate || 'S/D')
     })
     return Array.from(months).sort((a, b) => {
       if (a === 'S/D') return 1
       if (b === 'S/D') return -1
-      return a.localeCompare(b)
+      return (a || '').localeCompare(b || '')
     })
-  }, [filteredOpportunities])
+  }, [activeOpportunities])
 
   const forecastMatrix = useMemo(() => {
     const matrix: Record<string, Record<string, number>> = {}
@@ -86,23 +91,24 @@ export default function Index() {
       })
     })
 
-    filteredOpportunities.forEach((opp) => {
+    activeOpportunities.forEach((opp) => {
       const month = opp.estimatedDate || 'S/D'
-      if (matrix[opp.stageId] && matrix[opp.stageId][month] !== undefined) {
-        matrix[opp.stageId][month] += opp.potentialValue
-      } else if (matrix[opp.stageId]) {
-        matrix[opp.stageId][month] = opp.potentialValue
+      const stageId = STAGES[opp.stageId] ? opp.stageId : STAGE_ORDER[0]
+      if (matrix[stageId] && matrix[stageId][month] !== undefined) {
+        matrix[stageId][month] += opp.potentialValue || 0
+      } else if (matrix[stageId]) {
+        matrix[stageId][month] = opp.potentialValue || 0
       }
     })
     return matrix
-  }, [filteredOpportunities, uniqueMonths])
+  }, [activeOpportunities, uniqueMonths])
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       maximumFractionDigits: 0,
-    }).format(val)
+    }).format(val || 0)
 
   const formatMonth = (val: string) => {
     if (val === 'S/D') return 'Sem Data'
@@ -158,17 +164,17 @@ export default function Index() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Pipeline Total Bruto</CardTitle>
+            <CardTitle className="text-sm font-medium">Pipeline Ativo Bruto</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(metrics.totalValue)}</div>
-            <p className="text-xs text-muted-foreground">Valor total de todas oportunidades</p>
+            <p className="text-xs text-muted-foreground">Valor total em oportunidades ativas</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-primary">
-              Receita Ponderada (Forecast)
+              Receita Ponderada (Ativa)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -196,18 +202,20 @@ export default function Index() {
       <div className="grid gap-6 md:grid-cols-1">
         <Card>
           <CardHeader>
-            <CardTitle>Funil de Adoção Institucional</CardTitle>
-            <CardDescription>Volume e valor bruto das oportunidades por etapa</CardDescription>
+            <CardTitle>Funil de Adoção Ativo</CardTitle>
+            <CardDescription>
+              Volume e valor bruto das oportunidades ativas por etapa
+            </CardDescription>
           </CardHeader>
           <CardContent className="min-h-[350px] flex items-center justify-center pt-0">
-            <FunnelChart opportunities={filteredOpportunities} />
+            <FunnelChart opportunities={activeOpportunities} />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Matriz de Forecast de Faturamento</CardTitle>
+            <CardTitle>Matriz de Forecast (Ativos)</CardTitle>
             <CardDescription>
-              Valor total bruto projetado por data de implementação e fase do funil
+              Valor total bruto projetado por data de implementação para as oportunidades ativas
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -245,9 +253,9 @@ export default function Index() {
                             <div className="flex items-center gap-2">
                               <span
                                 className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: stage.hexColor }}
+                                style={{ backgroundColor: stage?.hexColor || '#999' }}
                               />
-                              {stage.label} ({stage.winPercentage}%)
+                              {stage?.label || stageId} ({stage?.winPercentage || 0}%)
                             </div>
                           </TableCell>
                           {uniqueMonths.map((month) => {
@@ -269,7 +277,7 @@ export default function Index() {
               </div>
             ) : (
               <div className="h-40 flex items-center justify-center text-muted-foreground border border-dashed rounded-lg">
-                Sem dados suficientes para gerar a matriz
+                Sem dados ativos suficientes para gerar a matriz
               </div>
             )}
           </CardContent>

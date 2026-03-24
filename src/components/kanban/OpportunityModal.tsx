@@ -68,7 +68,11 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
   }, [opportunityId, isOpen, opportunities])
 
   const currentStageId = formData.stageId as StageId
-  const stageInfo = STAGES[currentStageId]
+  const stageInfo = STAGES[currentStageId] || {
+    label: 'Desconhecido',
+    winPercentage: 0,
+    hexColor: '#999',
+  }
   const finalWin = Math.round(
     ((formData.qualitativeWin || 0) + (stageInfo?.winPercentage || 0)) / 2,
   )
@@ -97,6 +101,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
 
   const formatDateTime = (isoString: string) => {
     try {
+      if (!isoString) return ''
       return new Date(isoString).toLocaleString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
@@ -134,7 +139,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
             <Label>Título (Instituição / Cliente)</Label>
             <Input
               disabled={isViewer}
-              value={formData.title}
+              value={formData.title || ''}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Ex: Hospital das Clínicas"
             />
@@ -143,7 +148,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
             <Label>Produto</Label>
             <Select
               disabled={isViewer}
-              value={formData.productId}
+              value={formData.productId || ''}
               onValueChange={(v) => setFormData({ ...formData, productId: v })}
             >
               <SelectTrigger>
@@ -184,7 +189,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
             <Input
               disabled={isViewer}
               type="month"
-              value={formData.estimatedDate}
+              value={formData.estimatedDate || ''}
               onChange={(e) => setFormData({ ...formData, estimatedDate: e.target.value })}
             />
           </div>
@@ -210,7 +215,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
           <div className="space-y-4 col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-100 mt-2">
             <div className="flex justify-between items-center">
               <Label>Probabilidade Qualitativa (Seu feeling)</Label>
-              <span className="font-bold text-primary">{formData.qualitativeWin}%</span>
+              <span className="font-bold text-primary">{formData.qualitativeWin || 0}%</span>
             </div>
             <Slider
               disabled={isViewer}
@@ -221,7 +226,7 @@ export function OpportunityModal({ isOpen, onClose, opportunityId }: Opportunity
             />
             <div className="flex justify-between text-sm text-slate-500 pt-2 border-t border-slate-200">
               <span>
-                Sistema (Fase): <b>{stageInfo?.winPercentage}%</b>
+                Sistema (Fase): <b>{stageInfo?.winPercentage || 0}%</b>
               </span>
               <span>
                 Prob. Final Calculada: <b className="text-slate-800">{finalWin}%</b>

@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { STAGE_ORDER, STAGES, STAGE_CHECKLISTS } from '@/lib/constants'
 import { StageId } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Download } from 'lucide-react'
+import { Download, Eye, EyeOff } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { OpportunityModal } from '@/components/kanban/OpportunityModal'
 import { useSearchParams } from 'react-router-dom'
@@ -26,6 +26,7 @@ export default function Opportunities() {
   const { toast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedOppId, setSelectedOppId] = useState<string | null>(null)
+  const [showClosed, setShowClosed] = useState(false)
 
   const [selectedProductId, setSelectedProductId] = useState<string>('ALL')
   const [selectedClients, setSelectedClients] = useState<string[]>([])
@@ -33,14 +34,15 @@ export default function Opportunities() {
   const isNewOpen = searchParams.get('new') === 'true' && !isViewer
 
   const uniqueClients = useMemo(() => {
-    const clients = new Set(opportunities.map((o) => o.title))
+    const clients = new Set(opportunities.map((o) => o.title || 'Sem Título'))
     return Array.from(clients).sort()
   }, [opportunities])
 
   const filteredOpportunities = useMemo(() => {
     return opportunities.filter((opp) => {
       const matchProduct = selectedProductId === 'ALL' || opp.productId === selectedProductId
-      const matchClient = selectedClients.length === 0 || selectedClients.includes(opp.title)
+      const matchClient =
+        selectedClients.length === 0 || selectedClients.includes(opp.title || 'Sem Título')
       return matchProduct && matchClient
     })
   }, [opportunities, selectedProductId, selectedClients])
@@ -80,7 +82,7 @@ export default function Opportunities() {
       if (missing.length > 0) {
         toast({
           title: 'Ação bloqueada',
-          description: `Conclua todas as atividades da fase ${STAGES[opp.stageId].label} antes de avançar.`,
+          description: `Conclua todas as atividades da fase ${STAGES[opp.stageId]?.label || 'Anterior'} antes de avançar.`,
           variant: 'destructive',
         })
         return
@@ -127,6 +129,14 @@ export default function Opportunities() {
           <Button
             variant="outline"
             className="w-full sm:w-auto bg-white"
+            onClick={() => setShowClosed(!showClosed)}
+          >
+            {showClosed ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+            {showClosed ? 'Ocultar Encerradas' : 'Mostrar Encerradas'}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto bg-white"
             onClick={() => exportOpportunities(filteredOpportunities, products)}
           >
             <Download className="mr-2 h-4 w-4" />
@@ -146,9 +156,9 @@ export default function Opportunities() {
             <KanbanColumn
               key={stageId}
               id={stageId}
-              title={stage.label}
+              title={stage?.label || stageId}
               count={stageOpps.length}
-              color={stage.hexColor}
+              color={stage?.hexColor || '#999'}
               bgColor="bg-slate-100/50"
               opps={stageOpps}
               products={products}
@@ -161,35 +171,39 @@ export default function Opportunities() {
           )
         })}
 
-        <KanbanColumn
-          id="WON"
-          title="Encerradas Ganhas"
-          count={wonOpps.length}
-          color="#22c55e"
-          bgColor="bg-green-50/50"
-          opps={wonOpps}
-          products={products}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragStart={handleDragStart}
-          onOppClick={setSelectedOppId}
-          isViewer={isViewer}
-        />
+        {showClosed && (
+          <>
+            <KanbanColumn
+              id="WON"
+              title="Encerradas Ganhas"
+              count={wonOpps.length}
+              color="#22c55e"
+              bgColor="bg-green-50/50"
+              opps={wonOpps}
+              products={products}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragStart={handleDragStart}
+              onOppClick={setSelectedOppId}
+              isViewer={isViewer}
+            />
 
-        <KanbanColumn
-          id="LOST"
-          title="Encerradas Perdidas"
-          count={lostOpps.length}
-          color="#ef4444"
-          bgColor="bg-red-50/50"
-          opps={lostOpps}
-          products={products}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragStart={handleDragStart}
-          onOppClick={setSelectedOppId}
-          isViewer={isViewer}
-        />
+            <KanbanColumn
+              id="LOST"
+              title="Encerradas Perdidas"
+              count={lostOpps.length}
+              color="#ef4444"
+              bgColor="bg-red-50/50"
+              opps={lostOpps}
+              products={products}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragStart={handleDragStart}
+              onOppClick={setSelectedOppId}
+              isViewer={isViewer}
+            />
+          </>
+        )}
       </div>
 
       <OpportunityModal

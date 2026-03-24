@@ -23,15 +23,15 @@ const mapOpp = (d: any, profiles: any[]): Opportunity => {
 
   return {
     id: d.id,
-    title: d.title,
+    title: d.title || 'Sem Título',
     description: d.description || '',
     productId: d.product_id,
     stageId: d.stage_id,
-    potentialValue: Number(d.potential_value),
-    estimatedDate: d.estimated_date,
-    qualitativeWin: d.qualitative_win,
-    completedActivities: d.completed_activities || [],
-    status: d.status,
+    potentialValue: Number(d.potential_value) || 0,
+    estimatedDate: d.estimated_date || '',
+    qualitativeWin: Number(d.qualitative_win) || 0,
+    completedActivities: Array.isArray(d.completed_activities) ? d.completed_activities : [],
+    status: d.status || 'ACTIVE',
     createdAt: d.created_at,
     updatedAt: d.updated_at,
     userId: d.user_id,
@@ -50,7 +50,8 @@ const unmapOpp = (o: Partial<Opportunity>, uid: string) => {
   if (o.potentialValue !== undefined) d.potential_value = o.potentialValue
   if (o.estimatedDate !== undefined) d.estimated_date = o.estimatedDate
   if (o.qualitativeWin !== undefined) d.qualitative_win = o.qualitativeWin
-  if (o.completedActivities !== undefined) d.completed_activities = o.completedActivities
+  if (o.completedActivities !== undefined)
+    d.completed_activities = Array.isArray(o.completedActivities) ? o.completedActivities : []
   if (o.status !== undefined) d.status = o.status
   return d
 }
@@ -73,7 +74,7 @@ export function MainProvider({ children }: { children: ReactNode }) {
       const [prodsRes, oppsRes, profilesRes] = await Promise.all([
         supabase.from('products').select('*'),
         supabase.from('opportunities').select('*'),
-        supabase.from('profiles' as any).select('*'), // Casting to any as it's dynamically added via migration
+        supabase.from('profiles' as any).select('*'),
       ])
 
       const currentProfiles = profilesRes.data || []
@@ -114,7 +115,6 @@ export function MainProvider({ children }: { children: ReactNode }) {
     const dbData = unmapOpp(updates, user.id)
     dbData.last_updated_by = user.id
 
-    // Optimistic UI update
     setOpportunities((prev) =>
       prev.map((o) =>
         o.id === id

@@ -22,13 +22,13 @@ export function exportForecastMatrix(
   const rows = [headers.join(';')]
 
   STAGE_ORDER.forEach((stageId) => {
-    const stage = STAGES[stageId]
-    const rowTotal = uniqueMonths.reduce((sum, month) => sum + (matrix[stageId][month] || 0), 0)
+    const stage = STAGES[stageId] || { label: 'Desconhecido', winPercentage: 0 }
+    const rowTotal = uniqueMonths.reduce((sum, month) => sum + (matrix[stageId]?.[month] || 0), 0)
 
     const row = [
       stage.label,
       `${stage.winPercentage}%`,
-      ...uniqueMonths.map((month) => (matrix[stageId][month] || 0).toString().replace('.', ',')),
+      ...uniqueMonths.map((month) => (matrix[stageId]?.[month] || 0).toString().replace('.', ',')),
       rowTotal.toString().replace('.', ','),
     ]
     rows.push(row.join(';'))
@@ -51,14 +51,14 @@ export function exportOpportunities(opportunities: Opportunity[], products: Prod
 
   opportunities.forEach((opp) => {
     const product = products.find((p) => p.id === opp.productId)?.name || 'Sem Produto'
-    const stage = STAGES[opp.stageId]
+    const stage = STAGES[opp.stageId] || { label: 'Desconhecido', winPercentage: 0 }
     const row = [
-      `"${opp.title.replace(/"/g, '""')}"`,
+      `"${(opp.title || 'Sem Título').replace(/"/g, '""')}"`,
       `"${product.replace(/"/g, '""')}"`,
       stage.label,
-      opp.qualitativeWin.toString(),
+      (opp.qualitativeWin || 0).toString(),
       stage.winPercentage.toString(),
-      opp.potentialValue.toString().replace('.', ','),
+      (opp.potentialValue || 0).toString().replace('.', ','),
       opp.estimatedDate || 'Sem Data',
     ]
     rows.push(row.join(';'))
