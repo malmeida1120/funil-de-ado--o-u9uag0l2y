@@ -1,14 +1,185 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.4'
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
+      "Frete 2025 Revisado": {
+        Row: {
+          ADVALOREM: string | null
+          AGENDA: string | null
+          Ano: number | null
+          BAI_ENTREGA_DOC: string | null
+          "C.CUSTO": string | null
+          "Capital/ Interior": string | null
+          "CENTRO DE CUSTO": string | null
+          CEP_ENTREGA_DOC: string | null
+          "CIDADE COLETA": string | null
+          "CIDADE ENTREGA": string | null
+          "CNPJ CLIENTE": string | null
+          "CNPJ DESTINATARIO": string | null
+          "CNPJ REMETENTE": string | null
+          "CT-e EMITIDO": string | null
+          "DESTINATARIO VIP": string | null
+          "DT.EMISSAO": string | null
+          "EMP.DESCR": string | null
+          "EMP.TMS": string | null
+          "EMP.TMS DESCRICAO": string | null
+          END_ENTREGA_DOC: string | null
+          "FRETE PESO": string | null
+          "FRETE RECEBER": string | null
+          "FRETE VALOR": string | null
+          GRIS: string | null
+          "GRUPO CCUS": string | null
+          ICMS: string | null
+          Mês: string | null
+          "MESO-REGIAO AGV": string | null
+          MODAL: string | null
+          "NF (R$) REAL": string | null
+          "NOME CLIENTE(CCUSTO)": string | null
+          "NOME DESTINATARIO": string | null
+          "NOME REMETENTE": string | null
+          "NUMERO CTe": number | null
+          OBSERVACAO: string | null
+          OCORRENCIA: string | null
+          "PESO TAXADO": string | null
+          "PIS/COFINS": string | null
+          "QTD.NF": number | null
+          Range: number | null
+          "REC.BRUTA RECEBER": string | null
+          "RECEITA LIQUIDA": string | null
+          REGIAO: string | null
+          "RELACAO DE NF": string | null
+          "SERIE CTe": string | null
+          "TIPO CTe": string | null
+          "TIPO DOC": string | null
+          "TIPO PRODUTO": string | null
+          "UF COLETA": string | null
+          "UF ENTREGA": string | null
+          UNIDADE: string | null
+          VOLUMES: number | null
+        }
+        Insert: {
+          ADVALOREM?: string | null
+          AGENDA?: string | null
+          Ano?: number | null
+          BAI_ENTREGA_DOC?: string | null
+          "C.CUSTO"?: string | null
+          "Capital/ Interior"?: string | null
+          "CENTRO DE CUSTO"?: string | null
+          CEP_ENTREGA_DOC?: string | null
+          "CIDADE COLETA"?: string | null
+          "CIDADE ENTREGA"?: string | null
+          "CNPJ CLIENTE"?: string | null
+          "CNPJ DESTINATARIO"?: string | null
+          "CNPJ REMETENTE"?: string | null
+          "CT-e EMITIDO"?: string | null
+          "DESTINATARIO VIP"?: string | null
+          "DT.EMISSAO"?: string | null
+          "EMP.DESCR"?: string | null
+          "EMP.TMS"?: string | null
+          "EMP.TMS DESCRICAO"?: string | null
+          END_ENTREGA_DOC?: string | null
+          "FRETE PESO"?: string | null
+          "FRETE RECEBER"?: string | null
+          "FRETE VALOR"?: string | null
+          GRIS?: string | null
+          "GRUPO CCUS"?: string | null
+          ICMS?: string | null
+          Mês?: string | null
+          "MESO-REGIAO AGV"?: string | null
+          MODAL?: string | null
+          "NF (R$) REAL"?: string | null
+          "NOME CLIENTE(CCUSTO)"?: string | null
+          "NOME DESTINATARIO"?: string | null
+          "NOME REMETENTE"?: string | null
+          "NUMERO CTe"?: number | null
+          OBSERVACAO?: string | null
+          OCORRENCIA?: string | null
+          "PESO TAXADO"?: string | null
+          "PIS/COFINS"?: string | null
+          "QTD.NF"?: number | null
+          Range?: number | null
+          "REC.BRUTA RECEBER"?: string | null
+          "RECEITA LIQUIDA"?: string | null
+          REGIAO?: string | null
+          "RELACAO DE NF"?: string | null
+          "SERIE CTe"?: string | null
+          "TIPO CTe"?: string | null
+          "TIPO DOC"?: string | null
+          "TIPO PRODUTO"?: string | null
+          "UF COLETA"?: string | null
+          "UF ENTREGA"?: string | null
+          UNIDADE?: string | null
+          VOLUMES?: number | null
+        }
+        Update: {
+          ADVALOREM?: string | null
+          AGENDA?: string | null
+          Ano?: number | null
+          BAI_ENTREGA_DOC?: string | null
+          "C.CUSTO"?: string | null
+          "Capital/ Interior"?: string | null
+          "CENTRO DE CUSTO"?: string | null
+          CEP_ENTREGA_DOC?: string | null
+          "CIDADE COLETA"?: string | null
+          "CIDADE ENTREGA"?: string | null
+          "CNPJ CLIENTE"?: string | null
+          "CNPJ DESTINATARIO"?: string | null
+          "CNPJ REMETENTE"?: string | null
+          "CT-e EMITIDO"?: string | null
+          "DESTINATARIO VIP"?: string | null
+          "DT.EMISSAO"?: string | null
+          "EMP.DESCR"?: string | null
+          "EMP.TMS"?: string | null
+          "EMP.TMS DESCRICAO"?: string | null
+          END_ENTREGA_DOC?: string | null
+          "FRETE PESO"?: string | null
+          "FRETE RECEBER"?: string | null
+          "FRETE VALOR"?: string | null
+          GRIS?: string | null
+          "GRUPO CCUS"?: string | null
+          ICMS?: string | null
+          Mês?: string | null
+          "MESO-REGIAO AGV"?: string | null
+          MODAL?: string | null
+          "NF (R$) REAL"?: string | null
+          "NOME CLIENTE(CCUSTO)"?: string | null
+          "NOME DESTINATARIO"?: string | null
+          "NOME REMETENTE"?: string | null
+          "NUMERO CTe"?: number | null
+          OBSERVACAO?: string | null
+          OCORRENCIA?: string | null
+          "PESO TAXADO"?: string | null
+          "PIS/COFINS"?: string | null
+          "QTD.NF"?: number | null
+          Range?: number | null
+          "REC.BRUTA RECEBER"?: string | null
+          "RECEITA LIQUIDA"?: string | null
+          REGIAO?: string | null
+          "RELACAO DE NF"?: string | null
+          "SERIE CTe"?: string | null
+          "TIPO CTe"?: string | null
+          "TIPO DOC"?: string | null
+          "TIPO PRODUTO"?: string | null
+          "UF COLETA"?: string | null
+          "UF ENTREGA"?: string | null
+          UNIDADE?: string | null
+          VOLUMES?: number | null
+        }
+        Relationships: []
+      }
       opportunities: {
         Row: {
           completed_activities: Json
@@ -60,11 +231,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'opportunities_product_id_fkey'
-            columns: ['product_id']
+            foreignKeyName: "opportunities_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: 'products'
-            referencedColumns: ['id']
+            referencedRelation: "products"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -129,31 +300,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -162,23 +335,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -187,23 +360,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -212,36 +385,36 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
@@ -249,6 +422,7 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -260,6 +434,59 @@ export const Constants = {
 // --- COLUMN TYPES (actual PostgreSQL types) ---
 // Use this to know the real database type when writing migrations.
 // "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: Frete 2025 Revisado
+//   UNIDADE: text (nullable)
+//   EMP.TMS: text (nullable)
+//   EMP.TMS DESCRICAO: text (nullable)
+//   TIPO DOC: text (nullable)
+//   NUMERO CTe: bigint (nullable)
+//   SERIE CTe: text (nullable)
+//   TIPO CTe: text (nullable)
+//   DT.EMISSAO: text (nullable)
+//   C.CUSTO: text (nullable)
+//   GRUPO CCUS: text (nullable)
+//   CENTRO DE CUSTO: text (nullable)
+//   CNPJ CLIENTE: text (nullable)
+//   NOME CLIENTE(CCUSTO): text (nullable)
+//   CNPJ REMETENTE: text (nullable)
+//   NOME REMETENTE: text (nullable)
+//   CNPJ DESTINATARIO: text (nullable)
+//   NOME DESTINATARIO: text (nullable)
+//   DESTINATARIO VIP: text (nullable)
+//   AGENDA: text (nullable)
+//   CIDADE COLETA: text (nullable)
+//   UF COLETA: text (nullable)
+//   CIDADE ENTREGA: text (nullable)
+//   UF ENTREGA: text (nullable)
+//   MESO-REGIAO AGV: text (nullable)
+//   REGIAO: text (nullable)
+//   MODAL: text (nullable)
+//   TIPO PRODUTO: text (nullable)
+//   OCORRENCIA: text (nullable)
+//   OBSERVACAO: text (nullable)
+//   CT-e EMITIDO: text (nullable)
+//   RELACAO DE NF: text (nullable)
+//   QTD.NF: bigint (nullable)
+//   NF (R$) REAL: text (nullable)
+//   VOLUMES: bigint (nullable)
+//   PESO TAXADO: text (nullable)
+//   FRETE RECEBER: text (nullable)
+//   ADVALOREM: text (nullable)
+//   GRIS: text (nullable)
+//   REC.BRUTA RECEBER: text (nullable)
+//   ICMS: text (nullable)
+//   PIS/COFINS: text (nullable)
+//   RECEITA LIQUIDA: text (nullable)
+//   FRETE PESO: text (nullable)
+//   FRETE VALOR: text (nullable)
+//   EMP.DESCR: text (nullable)
+//   CEP_ENTREGA_DOC: text (nullable)
+//   END_ENTREGA_DOC: text (nullable)
+//   BAI_ENTREGA_DOC: text (nullable)
+//   Ano: bigint (nullable)
+//   Mês: text (nullable)
+//   Range: bigint (nullable)
+//   Capital/ Interior: text (nullable)
 // Table: opportunities
 //   id: uuid (not null, default: gen_random_uuid())
 //   created_at: timestamp with time zone (not null, default: now())
@@ -301,6 +528,11 @@ export const Constants = {
 //   CHECK profiles_role_check: CHECK ((role = ANY (ARRAY['admin'::text, 'editor'::text, 'viewer'::text])))
 
 // --- ROW LEVEL SECURITY POLICIES ---
+// Table: Frete 2025 Revisado
+//   Policy "anon_select" (SELECT, PERMISSIVE) roles={anon}
+//     USING: true
+//   Policy "authenticated_select" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 // Table: opportunities
 //   Policy "Approved users can view opportunities" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.is_approved = true))))
@@ -344,7 +576,7 @@ export const Constants = {
 //     RETURN found_id;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
@@ -358,7 +590,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION update_updated_at_column()
 //   CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 //    RETURNS trigger
@@ -369,8 +601,9 @@ export const Constants = {
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 
 // --- TRIGGERS ---
 // Table: opportunities
 //   update_opportunities_updated_at: CREATE TRIGGER update_opportunities_updated_at BEFORE UPDATE ON public.opportunities FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+
